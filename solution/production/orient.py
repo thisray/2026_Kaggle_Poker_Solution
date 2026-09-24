@@ -88,7 +88,7 @@ def features(slots, hands, seat_a, seat_b, stage_one):
     })
     grouped = frame.groupby("slot")[["flow", "squeeze", "weight"]].sum()
     donor_score = pd.Series(slots).map(grouped.flow).values
-    squeeze_score = pd.Series(slots).map(grouped.squeeze).values
+    squeeze_score = pd.Series(slots).map(grouped["squeeze"]).values
     weight_sum = pd.Series(slots).map(grouped.weight).values
     donor_a = donor_score > 0
     squeez_a = squeeze_score > 0
