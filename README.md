@@ -28,6 +28,10 @@ The [Solution Writeup](https://www.kaggle.com/competitions/detect-suspicious-val
 
 This is **not yet the complete selected-submission method**. The r10 fourth-family branch has been restored, but a fresh run routed 74 of the original 77 pairs. More importantly, the historical family-ranker/TabICLv2 evidence chain is still missing. The r32-named output changes weights and baseline evidence within a smaller ensemble; it does not reconstruct the historical r32 risk, directed-transfer, soft-play, or residual-family ensembles. The output filenames name reconstruction targets, not verified equivalents of the submitted files. Missing method branches cannot be explained by floating-point nondeterminism.
 
+The original Round11 ranker training code, TabICLv2 fit/predict code, and exact R15 rank-blend function are included as standalone modules, but `run_all.py` does not use them yet: their upstream candidate-score and feature-table builders have not been restored in this repository.
+
+Standalone modules also document the historical r25 64+5 risk fusion and r32 family-routed evidence patch assembly. They require model-score and patch inputs that `run_all.py` does not regenerate; they are not a shortcut around the missing upstream training and inference stages.
+
 ## Data and setup
 
 Download the competition data from Kaggle and place these eight files in one directory: `players.parquet`, `hands.parquet`, `seats.parquet`, `actions.parquet`, `development_labels.csv`, `development_evidence.csv`, `evaluation_pairs.csv`, and `sample_submission.csv`. Competition data are not redistributed here.
@@ -42,6 +46,7 @@ python run_all.py --data-dir /path/to/competition-data --output-dir outputs
 ```
 
 The default `--variant all` writes two reconstruction-target CSVs and `outputs/run_report.json`. The validator checks 112,540 unique pairs, score and behavior values, nonempty cells, duplicate evidence IDs, evaluation-phase hands, and both pair members' seats. Passing these checks does **not** establish a similar leaderboard score. `requirements.txt` covers only the current partial runner; restoring the historical TabICLv2 path also requires its package, checkpoint, provenance, and license information.
+The standalone TabICL module has additional versions in `requirements_tabicl.txt`; those dependencies are not needed for the current `run_all.py` path.
 
 ## Measured reconstruction status
 
