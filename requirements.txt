@@ -1,0 +1,9 @@
+catboost==1.2.10
+duckdb==1.5.5
+lightgbm==4.7.0
+numba==0.67.0
+numpy==2.4.6
+pandas==3.0.5
+pyarrow==25.0.0
+scikit-learn==1.9.1
+scipy==1.17.1
