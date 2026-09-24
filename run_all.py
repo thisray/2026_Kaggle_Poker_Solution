@@ -24,6 +24,11 @@ def main() -> None:
     )
     parser.add_argument("--threads", type=int, default=16)
     parser.add_argument(
+        "--build-r15-cache",
+        action="store_true",
+        help="Also train the historical within-pair model and write the R15 s2 hand cache.",
+    )
+    parser.add_argument(
         "--resume-after-policy",
         action="store_true",
         help="Reuse complete policy intermediates after an interrupted local run.",
@@ -42,6 +47,7 @@ def main() -> None:
         output_dir,
         selected=True,
         threads=args.threads,
+        build_r15_cache=args.build_r15_cache,
         resume_after_policy=args.resume_after_policy,
         resume_after_evidence=args.resume_after_evidence,
     )

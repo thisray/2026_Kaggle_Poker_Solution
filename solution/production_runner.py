@@ -110,6 +110,7 @@ def run_production_spine(
     output_dir: Path,
     selected: bool = False,
     threads: int | None = None,
+    build_r15_cache: bool = False,
     resume_after_policy: bool = False,
     resume_after_evidence: bool = False,
 ) -> Path:
@@ -152,6 +153,16 @@ def run_production_spine(
         evidence_cache = work_dir / "production_m19_eval_hands.parquet"
         if not evidence_cache.is_file():
             raise FileNotFoundError(f"Missing evidence cache for resume: {evidence_cache}")
+    r15_cache_path = work_dir / "r15_within_eval_hands.parquet"
+    if build_r15_cache:
+        _run("r15_within_train.py", work_dir, data_dir, extra_env={"RUNS": "fam", "GEN": "m19w10"})
+        _run(
+            "r15_within_eval.py", work_dir, data_dir,
+            "--cache", str(evidence_cache),
+            "--models-dir", str(work_dir),
+            "--out", str(r15_cache_path),
+            extra_env={"NUMBA_NUM_THREADS": worker_threads},
+        )
     ci_patch_path = work_dir / "r18_ci_patch.csv"
     if selected:
         os.environ["POKER_WORK_DIR"] = str(work_dir)
@@ -244,6 +255,8 @@ def run_production_spine(
             "r10_path": str(r10_path),
             "r32_path": str(r32_path),
         }
+        if build_r15_cache:
+            receipt["r15_within_cache"] = str(r15_cache_path)
         (output_dir / "selected_assembly_receipt.json").write_text(
             json.dumps(receipt, indent=2) + "\n"
         )
