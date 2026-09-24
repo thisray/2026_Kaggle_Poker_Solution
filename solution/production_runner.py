@@ -131,6 +131,9 @@ def run_production_spine(
     if not (resume_after_policy or resume_after_evidence):
         for script, args, extra_env in initial_stages:
             _run(script, work_dir, data_dir, *args, extra_env=extra_env)
+        if selected:
+            _run("f4_infoshare.py", work_dir, data_dir, extra_env={"NUMBA_NUM_THREADS": worker_threads})
+            _run("f4_combined.py", work_dir, data_dir, extra_env={"NUMBA_NUM_THREADS": worker_threads})
         _remove_intermediates(work_dir, "dec_X.npy", "policy_v1.txt", "policy_v2.txt")
         _log_disk(work_dir)
 
@@ -168,8 +171,7 @@ def run_production_spine(
     _run("m26_handagg_m19.py", work_dir, data_dir)
     _remove_intermediates(
         work_dir,
-        "R_v1.npy", "P_v1.npy", "R2_v1.npy", "P2_v1.npy", "dec_probs_v1.npy",
-        "dec_Y.npy",
+        "R_v1.npy", "R2_v1.npy", "P2_v1.npy", "dec_probs_v1.npy",
         "m26_handscore_phase0.npy", "m26_slot_phase0.npy", "m26_h_phase0.npy",
         "m26_handscore_phase1.npy", "m26_slot_phase1.npy", "m26_h_phase1.npy",
     )
@@ -181,7 +183,7 @@ def run_production_spine(
     ]
     for script, args, extra_env in final_stages:
         _run(script, work_dir, data_dir, *args, extra_env=extra_env)
-    _remove_intermediates(work_dir, "R4_v2.npy", "P4_v2.npy", "dec_probs_v2.npy")
+    _remove_intermediates(work_dir, "R4_v2.npy", "P4_v2.npy")
     _log_disk(work_dir)
 
     model_stages: list[tuple[str, tuple[str, ...], dict[str, str] | None]] = [
@@ -214,8 +216,11 @@ def run_production_spine(
 
         r10_prepatch = output_dir / "r10_ci_prepatch.csv"
         _assemble_rank_fusion(work_dir, data_dir, baseline_path, r10_prepatch)
+        _run("f4_route.py", work_dir, data_dir, str(r10_prepatch))
+        _run("f4_hand_tables.py", work_dir, data_dir, str(work_dir / "f4_pair_ids.txt"), "ext")
+        _run("f4_ndw.py", work_dir, data_dir)
         r10, r10_changed = apply_evidence_patch(
-            pd.read_csv(r10_prepatch, dtype={"pair_id": str}), ci_patch_path
+            pd.read_csv(work_dir / "f4_ndw_baseline.csv", dtype={"pair_id": str}), ci_patch_path
         )
         r10_path = output_dir / "r10_ci.csv"
         r10.to_csv(r10_path, index=False)
@@ -242,6 +247,7 @@ def run_production_spine(
         (output_dir / "selected_assembly_receipt.json").write_text(
             json.dumps(receipt, indent=2) + "\n"
         )
+        _remove_intermediates(work_dir, "P_v1.npy", "dec_Y.npy", "dec_probs_v2.npy")
         return r10_path
 
     output_path = output_dir / "production_spine.csv"

@@ -24,9 +24,9 @@ The [Solution Writeup](https://www.kaggle.com/competitions/detect-suspicious-val
 
 ## What the code currently reproduces—and what it does not
 
-`run_all.py` reads the eight official competition files, builds features, trains the three-model pair ensemble and three-family classifier, generates m19 evidence, applies a CI adapter, and validates the output format and hand membership. It does not read a historical prediction CSV.
+`run_all.py` reads the eight official competition files, builds features, trains the three-model pair ensemble and three-family classifier, restores the fourth-family signal, monotone rank insertion, and NDw evidence rule, generates m19 baseline evidence, applies a CI adapter, and validates output format and hand membership. It does not read a historical prediction CSV.
 
-This is **not yet the complete selected-submission method**. The runner lacks the original r10 fourth-family discovery, rank insertion, NDw evidence route, and family-ranker/TabICLv2 evidence chain. Its r32-named output changes weights and baseline evidence within a smaller ensemble; it does not reconstruct the historical r32 risk, directed-transfer, and soft-play ensembles. The output filenames name reconstruction targets, not verified equivalents of the submitted files. Missing method branches cannot be explained by floating-point nondeterminism.
+This is **not yet the complete selected-submission method**. The r10 fourth-family branch has been restored, but a fresh run routed 74 of the original 77 pairs. More importantly, the historical family-ranker/TabICLv2 evidence chain is still missing. The r32-named output changes weights and baseline evidence within a smaller ensemble; it does not reconstruct the historical r32 risk, directed-transfer, soft-play, or residual-family ensembles. The output filenames name reconstruction targets, not verified equivalents of the submitted files. Missing method branches cannot be explained by floating-point nondeterminism.
 
 ## Data and setup
 
@@ -45,14 +45,14 @@ The default `--variant all` writes two reconstruction-target CSVs and `outputs/r
 
 ## Measured reconstruction status
 
-The recorded GB10 run used the official-data workspace and resumed after two adapter corrections. Total wall time was `3:51:51`, with peak RSS of 19.25 GiB. Both outputs passed submission-legality checks. Against the original submitted files:
+Private Kaggle CPU Notebook v6 reran this code from the eight official files in `33,918.728` seconds. Both outputs passed submission-legality checks. Against the original submitted files:
 
 | Reconstruction target | Risk Spearman | Behavior rows differing | Mean shared evidence IDs | Exact five-hand sets |
 | --- | ---: | ---: | ---: | ---: |
-| r10 | 0.974487 | 77 / 112,540 | 3.4350 / 5 | 16.9504% |
-| r32 | 0.968706 | 87 / 112,540 | 3.4337 / 5 | 16.8660% |
+| r10 | 0.969198 | 3 / 112,540 | 3.4380 / 5 | 17.0197% |
+| r32 | 0.966357 | 87 / 112,540 | 3.4342 / 5 | 16.8687% |
 
-A private Kaggle CPU Notebook v5 also completed and passed legality checks, but neither reconstruction has a new competition score. These similarity figures cannot be converted into private Pair AP or Evidence MAP@5. Complete historical-method reproduction and a similar-score check remain open.
+The r10 original top-300 pair set overlaps the replay by 285 pairs. For the original 77 fourth-family pairs, mean evidence overlap is 4.805/5, with three behavior mismatches. The r32 original top-300 overlap is 216 pairs, and all 87 original residual-family behaviors still differ. Neither replay has a new competition score. Similarity figures cannot be converted into private Pair AP or Evidence MAP@5. Complete historical-method reproduction and a similar-score check remain open.
 
 ## Evidence reviews and license
 
