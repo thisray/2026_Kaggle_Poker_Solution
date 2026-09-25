@@ -1,0 +1,22 @@
+--- a/scripts/round11/r11_entry.py
++++ b/scripts/round11/r11_entry.py
+@@ -43,7 +43,7 @@
+ first = np.ones(len(key), bool); first[1:] = key[1:] != key[:-1]
+ k = k[first]
+ h = hand_of[k]; seat = a_seat[k]
+-faced = (cum[k] - cum[a_off[h]] - aggr[k]) > 0
++faced = (cum[k] - cum[a_off[h]]) > 0  # cumulative[k] already excludes current action
+ entered = (a_amount[k] > 0).astype(np.int64)
+ pos = (seat - h_btn[h]) % 6
+ c1 = s_c1[h, seat]; c2 = s_c2[h, seat]
+--- a/scripts/round13/r13_witness_diag.py
++++ b/scripts/round13/r13_witness_diag.py
+@@ -28,7 +28,7 @@
+ key = ["slot", "hand_id"]
+ m = d.merge(meta[key], on=key, how="inner")
+ idx = m.index.to_numpy()
+-order = pd.MultiIndex.from_frame(d[key]).get_indexer(pd.MultiIndex.from_frame(meta[key]))
++order = pd.MultiIndex.from_frame(meta[key]).get_indexer(pd.MultiIndex.from_frame(d[key]))
+ assert (order >= 0).all()
+ xw = np.asarray(xw[order])  # align to dev_pack row order
+ d["_rk"] = d.groupby("slot")["u_r5b"].rank(ascending=False, method="first")
