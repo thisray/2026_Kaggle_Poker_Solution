@@ -2,6 +2,8 @@
 
 This repository documents our competition-time solution and provides an executable **partial reconstruction**. The current code has not been verified as a complete reproduction of either final-evaluated submission. Please read the distinction below before attributing the historical leaderboard scores to this code.
 
+For review, read the [draft Solution Writeup](WRITEUP.md) and the [five submitted-evidence case reviews](docs/CASE_REVIEWS.md) alongside this README. The Kaggle writeup remains an unpublished draft.
+
 ## Competition result
 
 | Item | Verified record |
