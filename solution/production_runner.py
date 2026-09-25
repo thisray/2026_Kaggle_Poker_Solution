@@ -114,7 +114,17 @@ def run_production_spine(
     build_r5_models: bool = False,
     resume_after_policy: bool = False,
     resume_after_evidence: bool = False,
+    complete: bool = False,
+    tabicl_checkpoint: Path | None = None,
+    download_public_checkpoint: bool = False,
 ) -> Path:
+    if complete:
+        if not selected:
+            raise ValueError("Complete mode requires selected submission assembly")
+        build_r15_cache = True
+        build_r5_models = True
+        if tabicl_checkpoint is None and not download_public_checkpoint:
+            raise ValueError("Complete mode requires a TabICL checkpoint or explicit public-checkpoint download")
     if build_r5_models and not build_r15_cache:
         raise ValueError("--build-r5-models requires --build-r15-cache")
     data_dir = data_dir.resolve()
@@ -167,7 +177,34 @@ def run_production_spine(
             extra_env={"NUMBA_NUM_THREADS": worker_threads},
         )
     if build_r5_models:
-        _run("r5_train.py", work_dir, data_dir, extra_env={"R5_TEMPLATE": "m25_handfeat2_m19w10_oof.parquet", "NUMBA_NUM_THREADS": worker_threads})
+        _run("r5_train.py", work_dir, data_dir, extra_env={
+            "R5_TEMPLATE": "m25_handfeat2_m19w10_oof.parquet",
+            "POKER_BUILD_COMPLETE": "1" if complete else "0",
+            "NUMBA_NUM_THREADS": worker_threads,
+        })
+    complete_dir = work_dir / "complete_evidence"
+    if complete:
+        _run("seq_prep.py", work_dir, data_dir, extra_env={
+            "POKER_SEQ_SOURCE": "m19w10_handscores.parquet",
+            "POKER_SEQ_POSITIVE_ONLY": "1", "NUMBA_NUM_THREADS": worker_threads,
+        })
+        _run("seq_within.py", work_dir, data_dir, extra_env={
+            "POKER_SEQ_GB_OOF": "m25_handfeat2_m19w10_oof.parquet", "THREADS": worker_threads,
+        })
+        _run("r5_candidates.py", work_dir, data_dir,
+             "--hand-cache", str(r15_cache_path),
+             "--stats", str(work_dir / "r5_template_stats.npz"),
+             "--rerank", str(work_dir / "r5_rerank_beta.npz"),
+             "--models-dir", str(work_dir),
+             "--out", str(work_dir / "r5_candidates.parquet"))
+        _run("r5_nn_build_seq.py", work_dir, data_dir,
+             "--candidates", str(work_dir / "r5_candidates.parquet"),
+             "--out-dir", str(complete_dir))
+        _run("r5_nn_infer.py", work_dir, data_dir,
+             "--candidate-dir", str(complete_dir),
+             "--models-dir", str(work_dir / "seq"),
+             "--out", str(complete_dir / "r5_neural.parquet"),
+             extra_env={"THREADS": worker_threads})
     ci_patch_path = work_dir / "r18_ci_patch.csv"
     if selected:
         os.environ["POKER_WORK_DIR"] = str(work_dir)
@@ -207,6 +244,16 @@ def run_production_spine(
         ("m36_pair_ens.py", ("drop", "m26", "v6ens_cat"), {"LEARNER": "cat", "SEEDS": "7"}),
         ("m36_pair_ens.py", ("drop", "m26", "v6ens_cat11"), {"LEARNER": "cat", "SEEDS": "11"}),
     ]
+    if complete:
+        for tag, learner, seed in (
+            ("r32_new_lgb_s3", "lgb", "3"),
+            ("r32_new_lgb_s5", "lgb", "5"),
+            ("r32_new_lgb_s11", "lgb", "11"),
+            ("r32_new_cat_s17", "cat", "17"),
+            ("r32_new_cat_s23", "cat", "23"),
+        ):
+            model_stages.append(("m36_pair_ens.py", ("drop", "m26", tag),
+                                 {"LEARNER": learner, "SEEDS": seed}))
     for script, args, extra_env in model_stages:
         _run(script, work_dir, data_dir, *args, extra_env=extra_env)
 
@@ -235,22 +282,64 @@ def run_production_spine(
         _run("f4_route.py", work_dir, data_dir, str(r10_prepatch))
         _run("f4_hand_tables.py", work_dir, data_dir, str(work_dir / "f4_pair_ids.txt"), "ext")
         _run("f4_ndw.py", work_dir, data_dir)
+        r32_prepatch = output_dir / "r32_r30_dtgb15_prepatch.csv"
+        if complete:
+            _run("r32_group_fusion.py", work_dir, data_dir,
+                 "--work-dir", str(work_dir), "--data-dir", str(data_dir),
+                 "--base", str(work_dir / "f4_ndw_baseline.csv"),
+                 "--out", str(r32_prepatch))
+            _run("r15_complete_evidence.py", work_dir, data_dir,
+                 "prepare", "--candidates", str(work_dir / "r5_candidates.parquet"),
+                 "--neural", str(complete_dir / "r5_neural.parquet"),
+                 "--r10", str(work_dir / "f4_ndw_baseline.csv"),
+                 "--r32", str(r32_prepatch), "--out-dir", str(complete_dir))
+            fit_args = ["fit", "--input", str(work_dir / "r5_tabicl_train.parquet"),
+                        "--features", str(work_dir / "r5_tabicl_feature_cols.json"),
+                        "--out", str(complete_dir / "tabicl_fit"),
+                        "--threads", worker_threads]
+            if tabicl_checkpoint is not None:
+                fit_args.extend(["--checkpoint", str(tabicl_checkpoint.resolve())])
+            if download_public_checkpoint:
+                fit_args.append("--download-public-checkpoint")
+            _run("r15_tabicl_model.py", work_dir, data_dir, *fit_args)
+            _run("r15_tabicl_model.py", work_dir, data_dir,
+                 "predict", "--input", str(complete_dir / "gated_candidates.parquet"),
+                 "--features", str(work_dir / "r5_tabicl_feature_cols.json"),
+                 "--fitted", str(complete_dir / "tabicl_fit/classifier.pkl"),
+                 "--out", str(complete_dir / "tabicl_eval"))
+            _run("r15_tabicl_blend.py", work_dir, data_dir,
+                 "--ranker-scores", str(complete_dir / "ranker_scores.csv"),
+                 "--tabicl-scores", str(complete_dir / "tabicl_eval/predictions.csv.gz"),
+                 "--out", str(complete_dir / "scored_blend.csv"))
+            r10_evidence = complete_dir / "r10_evidence.csv"
+            r32_evidence = complete_dir / "r32_evidence.csv"
+            for base_path, out_path, typed in (
+                (work_dir / "f4_ndw_baseline.csv", r10_evidence, False),
+                (r32_prepatch, r32_evidence, True),
+            ):
+                patch_args = ["patch", "--base", str(base_path),
+                              "--scored", str(complete_dir / "scored_blend.csv"),
+                              "--candidates", str(complete_dir / "gated_candidates.parquet"),
+                              "--out", str(out_path)]
+                if typed:
+                    patch_args.append("--typed")
+                _run("r15_complete_evidence.py", work_dir, data_dir, *patch_args)
+            r10_base = r10_evidence
+            r32_base = r32_evidence
+        else:
+            _assemble_rank_fusion(
+                work_dir, data_dir, r32_baseline_path, r32_prepatch,
+                weights=(0.30, 0.45, 0.25),
+            )
+            r10_base = work_dir / "f4_ndw_baseline.csv"
+            r32_base = r32_prepatch
         r10, r10_changed = apply_evidence_patch(
-            pd.read_csv(work_dir / "f4_ndw_baseline.csv", dtype={"pair_id": str}), ci_patch_path
+            pd.read_csv(r10_base, dtype={"pair_id": str}), ci_patch_path
         )
         r10_path = output_dir / "r10_ci.csv"
         r10.to_csv(r10_path, index=False)
-
-        r32_prepatch = output_dir / "r32_r30_dtgb15_prepatch.csv"
-        _assemble_rank_fusion(
-            work_dir,
-            data_dir,
-            r32_baseline_path,
-            r32_prepatch,
-            weights=(0.30, 0.45, 0.25),
-        )
         r32, r32_changed = apply_evidence_patch(
-            pd.read_csv(r32_prepatch, dtype={"pair_id": str}), ci_patch_path
+            pd.read_csv(r32_base, dtype={"pair_id": str}), ci_patch_path
         )
         r32_path = output_dir / "r32_r30_dtgb15.csv"
         r32.to_csv(r32_path, index=False)
@@ -264,6 +353,7 @@ def run_production_spine(
             receipt["r15_within_cache"] = str(r15_cache_path)
         if build_r5_models:
             receipt["r5_models_dir"] = str(work_dir)
+        receipt["complete_method_path"] = complete
         (output_dir / "selected_assembly_receipt.json").write_text(
             json.dumps(receipt, indent=2) + "\n"
         )

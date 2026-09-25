@@ -1,6 +1,6 @@
 # Historical Competition Source
 
-This directory preserves the competition-time source code for review. It is a source archive, not a second one-click runner. The current portable entry point is [`../run_all.py`](../run_all.py); its reproduction limits are stated in the repository README.
+This directory preserves the competition-time source code for review. It is a source archive, not a second one-click runner. The connected, non-identical method entry point is [`../run_complete.py`](../run_complete.py); the earlier partial runner is [`../run_all.py`](../run_all.py). Their input requirements and limits are stated in [`../RUNNING.md`](../RUNNING.md).
 
 The files are copied from the private research repository at source commit `f871072`. `scripts/` contains the original competition scripts, `src/` the supporting package, `tests/` the small source tests, and `recovered/` the GB10 worker scripts that were recovered after the competition. No competition data, trained weights, checkpoints, submission CSVs, credentials, or large feature tables are included. Original scripts may retain GB10-specific absolute paths and historical experiment settings; review them as the executed method record, not as portable commands to run unchanged.
 
@@ -16,4 +16,4 @@ The files are copied from the private research repository at source commit `f871
 | r32 risk fusion, typed evidence and final zoo patches | `scripts/opus_r3/`, `scripts/opus_r4/`, `scripts/opus_r5/` |
 | GB10-only model and execution source recovered later | `recovered/gb10_opus_r1/`, `recovered/gb10_opus_r4/`, `recovered/gb10_opus_r5/` |
 
-The selected r10 and r32 files were assembled over multiple competition-time stages. The source is now present for inspection, including original training and patch code; not every historical command or checkpoint has been consolidated into the portable `run_all.py` path. Do not interpret the portable runner's current output as a verified reproduction of the leaderboard scores.
+The selected r10 and r32 files were assembled over multiple competition-time stages. The source is now present for inspection, including original training and patch code. `run_complete.py` connects the same types of stages with a compact reproducible risk group and typed evidence adjustments, but it does not train every historical zoo member or promise the same leaderboard scores. The original exact final assembly from saved intermediates is separately executable through `run_historical_assembly.py`.

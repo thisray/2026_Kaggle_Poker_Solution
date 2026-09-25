@@ -1,10 +1,11 @@
 # Running the solution code
 
-There are two supported entry points. Choose the one that matches the inputs you have. Neither command publishes a Kaggle writeup, submits to Kaggle, or changes this repository's visibility.
+There are three entry points. Choose the one that matches your goal. None publishes a Kaggle writeup, submits to Kaggle, or changes this repository's visibility.
 
 | Entry point | Inputs | Output | Scope |
 | --- | --- | --- | --- |
 | `run_historical_assembly.py` | Four saved competition-time intermediate CSVs | The two **selected historical submission CSVs** | Exact final assembly; does not retrain upstream models |
+| `run_complete.py` | Eight official files and a public TabICL checkpoint | Two **new, complete-method submission CSVs** | Connected training/inference/assembly path; not yet full-data executed; predictions need not match history |
 | `run_all.py` | Eight official competition files | Two **legal partial-reconstruction CSVs** | Rebuilds part of the method; does not reproduce the selected submissions |
 
 ## A. Assemble the selected submissions
@@ -29,7 +30,23 @@ python run_historical_assembly.py \
 
 The output directory receives `r10_ci.csv`, `r32_r30_dtgb15.csv`, and `historical_assembly_receipt.json`. The receipt records input and output hashes and applied patch counts. Do not place the output directory inside the artifact root. On GB10, this command yielded 112,540 rows in each CSV; r10 applied the CI patch to 591 pairs and had SHA-256 `437da364b0975a1b6ed6c54cb48c0d3db73c82b9fb630fe8b703dbdfcf75506c`; r32 applied the DT patch to 1,529 pairs and had SHA-256 `97478ea2553168a6f3fe0209d898996a2bba1e70b9f871e3eb36eca7cd4a4e5a`. These match the historical selected files. This verifies the **last assembly step**, not the full upstream training chain.
 
-## B. Run the portable partial reconstruction from official data
+## B. Run the connected method from official data
+
+Run this on a host with enough CPU memory, disk, and a CUDA GPU (the original execution host was GB10). It trains the pair models, family models, within-pair model, R5 family rankers and neural candidate ranker, then fits a compact TabICL model, combines evidence ranks, and writes both variants. The r32 path uses a reproducible 3+5 grouped pair-risk fusion and type-specific evidence adjustments in place of the historical 64+5 risk zoo and 42-model evidence zoo. These are the same *kinds* of stages, not the same trained artifacts; no historical output hash or leaderboard score is promised. This code path is wired and syntax-checked, but **has not been run on all eight files**.
+
+```bash
+conda create -n poker-solution python=3.11.16 pip -y
+conda activate poker-solution
+python -m pip install -r requirements.txt -r requirements_tabicl.txt
+python run_complete.py \
+  --data-dir /path/to/competition-data \
+  --output-dir /path/to/output \
+  --tabicl-checkpoint /path/to/tabicl-classifier-v2-20260212.ckpt
+```
+
+If you do not already have the public TabICL checkpoint, replace `--tabicl-checkpoint ...` with `--download-public-checkpoint` to explicitly allow its download. The command writes two CSVs and `run_complete_report.json`; it runs the same final submission legality validator. It never submits files to Kaggle. Keep the output directory on the compute host; large derived tables and model weights are not included in this GitHub repository.
+
+## C. Run the earlier partial reconstruction from official data
 
 Download these eight official files into one directory: `players.parquet`, `hands.parquet`, `seats.parquet`, `actions.parquet`, `development_labels.csv`, `development_evidence.csv`, `evaluation_pairs.csv`, and `sample_submission.csv`. After the same environment setup:
 

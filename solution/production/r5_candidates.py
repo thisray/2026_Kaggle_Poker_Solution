@@ -41,6 +41,9 @@ stats = np.load(args.stats, allow_pickle=True)
 mu, sd, num_cols = stats["mu"], stats["sd"], list(stats["num"])
 all_cols = open(f"{OUT}/r5_feature_cols.txt").read().split("\n")
 assert len(all_cols) == 487
+tabicl_feature_path = Path(OUT) / "r5_tabicl_feature_cols.json"
+tabicl_cols = json.loads(tabicl_feature_path.read_text()) if tabicl_feature_path.exists() else []
+typed_cols = ["o_flow_dr", "o_lost_dr", "eq_fold_to_mx", "facing_mx", "o_dir_agree"]
 B = np.load(args.rerank, allow_pickle=True)
 beta, fmu, fsd = B["beta"], B["fmu"], B["fsd"]
 rcols = list(B["feat_cols"])
@@ -126,7 +129,13 @@ while i0 < len(C):
         if m.any():
             sc[m] = np.mean([mdl.predict(X[m], num_threads=12) for mdl in models_by_fam[kk]], axis=0)
     ts = ts_all[h]
-    D = pd.DataFrame({"slot": sl, "h": h, "s1": s1, "fi": fi_arr, "sa": sa, "sb": sb, "sc": sc, "ts": ts})
+    D = pd.DataFrame({"slot": sl, "h": h, "s1": s1, "s2": part.s2.values,
+                      "fi": fi_arr, "sa": sa, "sb": sb, "sc": sc, "ts": ts})
+    for col in tabicl_cols:
+        D[col] = X[col].to_numpy()
+    for col in typed_cols:
+        if col not in D:
+            D[col] = X[col].to_numpy()
     D["gen_rank_all"] = D.groupby("slot").s1.rank(pct=True).values
     D = D.sort_values(["slot", "ts"])
     cum = D.groupby("slot").sc.cumsum() - D.sc
@@ -138,9 +147,15 @@ while i0 < len(C):
     D.loc[sel, "lin"] = Fv @ beta
     D["u"] = D.u0 + rscale * D.lin
     cand = D.sort_values(["slot", "u"], ascending=[True, False]).groupby("slot").head(TOPK)
-    out_tables.append(cand[["slot", "h", "s1", "fi", "sa", "sb", "u0", "lin", "u", "gen_rank_all"]])
+    candidate_cols = list(dict.fromkeys(["slot", "h", "s1", "s2", "fi", "sa", "sb", "sc", "u0", "lin", "u", "gen_rank_all", *tabicl_cols, *typed_cols]))
+    out_tables.append(cand[candidate_cols])
     log("chunk done", i1, "of", len(C), "candidates so far", sum(len(x) for x in out_tables))
     i0 = i1
 candy = pd.concat(out_tables, ignore_index=True)
+hand_index = pd.read_parquet(f"{OUT}/np/hand_index.parquet").set_index("hi")
+candy["hand_id"] = hand_index.hand_id.reindex(candy.h).to_numpy()
+candy["pair_id"] = candy.slot.map(dict(zip(evalp.slot, evalp.pair_id)))
+if candy[["hand_id", "pair_id"]].isna().any().any():
+    raise ValueError("Candidate hand or pair mapping is incomplete")
 candy.to_parquet(args.out)
 log("wrote candidates", len(candy))

@@ -108,6 +108,19 @@ cum = P.groupby("sl").sc.cumsum() - P.sc
 P["dec"] = P.sc * poisson.cdf(3, cum) * np.exp(-0.25 * P.groupby("sl").ts.rank(pct=True))
 P["u0"] = np.log(np.clip(P.dec.values, 1e-9, None))
 
+if os.environ.get("POKER_BUILD_COMPLETE") == "1":
+    # A fixed gameplay view gives the compact TabICL stage a fold-safe training table.
+    tabicl_cols = cols[:24]
+    tabicl_rows = P.groupby("sl").u0.rank(ascending=False, method="first") <= 20
+    tabicl_train = X.loc[tabicl_rows, tabicl_cols].copy()
+    tabicl_train["slot"] = P.loc[tabicl_rows, "sl"].to_numpy()
+    tabicl_train["pool"] = (P.loc[tabicl_rows, "sl"].to_numpy() // 900)
+    tabicl_train["fold"] = fold[tabicl_rows]
+    tabicl_train["ev"] = y[tabicl_rows]
+    tabicl_train.to_parquet(f"{OUT}/r5_tabicl_train.parquet", index=False)
+    with open(f"{OUT}/r5_tabicl_feature_cols.json", "w") as stream:
+        json.dump(tabicl_cols, stream)
+
 # rerank features and beta
 feat_cols = [c for c in X.columns if c.startswith(("ev_", "wit_", "o_", "DS_", "S_", "Q_")) and not c.startswith("z_")]
 feat_cols = list(dict.fromkeys(feat_cols))[:120]

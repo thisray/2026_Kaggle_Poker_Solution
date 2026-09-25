@@ -1,6 +1,6 @@
 # Detect Suspicious Value Transfers in Poker — Solution and Reproduction Status
 
-This repository documents our competition-time solution and has **two distinct executable paths**. `run_historical_assembly.py` reconstructs both selected submission CSVs from four saved competition-time intermediate files; we reran it on GB10 and obtained the exact original SHA-256 hashes. `run_all.py` starts from the eight official data files but is a **partial reconstruction**, not the full leaderboard-producing pipeline. The historical training and inference source is archived for review, but there is no single raw-data-to-selected-submission command. See [Running the code](RUNNING.md) for commands and input boundaries.
+This repository documents our competition-time solution and has **three distinct execution paths**. `run_complete.py` connects the method stages from the eight official files to both output CSVs, without aiming for byte-identical historical predictions; this new full path has **not** had a full-data run. `run_historical_assembly.py` reconstructs the exact selected CSVs from four saved competition-time intermediate files; we reran it on GB10 and obtained the original SHA-256 hashes. `run_all.py` is the earlier, measured partial reconstruction. See [Running the code](RUNNING.md) for commands and the differences between these paths.
 
 For review, read the [draft Solution Writeup](WRITEUP.md) and the [five submitted-evidence case reviews](docs/CASE_REVIEWS.md) alongside this README. The Kaggle writeup remains an unpublished draft.
 
@@ -13,6 +13,8 @@ python run_historical_assembly.py --artifact-root /path/to/saved-competition-int
 ```
 
 If you only have the eight official raw files, use `run_all.py` as documented in [RUNNING.md](RUNNING.md); that path is partial and must not be described as the original leaderboard-producing run.
+
+For the connected method path from the official raw files, use `run_complete.py` as documented in [RUNNING.md](RUNNING.md). It trains its own compact TabICL model using an explicit public checkpoint and recreates family-aware candidate evidence and grouped r32 risk. This is a non-identical implementation of the solution method, not a replay of every historical model or score.
 
 ## Competition result
 
