@@ -104,22 +104,26 @@ for fm in FAMS:
     print("saved family", fm, round(time.time() - t0, 1), flush=True)
 np.savez(f"{OUT}/r5_template_stats.npz", mu=mu, sd=sd, num=np.array(num))
 open(f"{OUT}/r5_feature_cols.txt", "w").write("\n".join(cols))
+if os.environ.get("POKER_BUILD_T1") == "1":
+    t1_cols = [c for c in cols if not c.startswith(("ev_", "wit_"))]
+    t1_params = dict(params, num_threads=8)
+    P["t1"] = 0.0
+    for f in range(5):
+        tr = win & (fold != f)
+        va = fold == f
+        model = lgb.train(
+            t1_params, lgb.Dataset(X.loc[tr, t1_cols], y[tr]), num_boost_round=600
+        )
+        P.loc[va, "t1"] = model.predict(X.loc[va, t1_cols])
+        model.save_model(f"{OUT}/m25t1_handfeat2_fam_m19w10_f{f}.txt")
+    P[["sl", "h", "ev", "fam", "ts", "s", "t1"]].rename(
+        columns={"t1": "sc_fam"}
+    ).to_parquet(f"{OUT}/m25t1_handfeat2_m19w10_oof.parquet", index=False)
+    with open(f"{OUT}/m25t1_handfeat2_m19w10_cols.json", "w") as stream:
+        json.dump({"fam": t1_cols}, stream)
 cum = P.groupby("sl").sc.cumsum() - P.sc
 P["dec"] = P.sc * poisson.cdf(3, cum) * np.exp(-0.25 * P.groupby("sl").ts.rank(pct=True))
 P["u0"] = np.log(np.clip(P.dec.values, 1e-9, None))
-
-if os.environ.get("POKER_BUILD_COMPLETE") == "1":
-    # A fixed gameplay view gives the compact TabICL stage a fold-safe training table.
-    tabicl_cols = cols[:24]
-    tabicl_rows = P.groupby("sl").u0.rank(ascending=False, method="first") <= 20
-    tabicl_train = X.loc[tabicl_rows, tabicl_cols].copy()
-    tabicl_train["slot"] = P.loc[tabicl_rows, "sl"].to_numpy()
-    tabicl_train["pool"] = (P.loc[tabicl_rows, "sl"].to_numpy() // 900)
-    tabicl_train["fold"] = fold[tabicl_rows]
-    tabicl_train["ev"] = y[tabicl_rows]
-    tabicl_train.to_parquet(f"{OUT}/r5_tabicl_train.parquet", index=False)
-    with open(f"{OUT}/r5_tabicl_feature_cols.json", "w") as stream:
-        json.dump(tabicl_cols, stream)
 
 # rerank features and beta
 feat_cols = [c for c in X.columns if c.startswith(("ev_", "wit_", "o_", "DS_", "S_", "Q_")) and not c.startswith("z_")]
@@ -178,6 +182,58 @@ r = minimize(loss, np.zeros(Df.shape[1]), args=(Df, base_delta, W), method="L-BF
 beta = r.x
 np.savez(f"{OUT}/r5_rerank_beta.npz", beta=beta, fmu=fmu, fsd=fsd,
          feat_cols=np.array(feat_cols), scale=RERANK_SCALE)
+if os.environ.get("POKER_BUILD_T1") == "1":
+    lin_oof = np.zeros(len(P), dtype=np.float64)
+    fold_i = fold[I]
+    for f in range(5):
+        tr = fold_i != f
+        fit = minimize(
+            loss, np.zeros(Df.shape[1]),
+            args=(Df[tr], base_delta[tr], W[tr]),
+            method="L-BFGS-B", options={"maxiter": 400},
+        )
+        va = fold == f
+        lin_oof[va] = Fv[va] @ fit.x
+    P["lin"] = lin_oof
+    P["u"] = P.u0 + RERANK_SCALE * P.lin
+    selected = P.sort_values(["sl", "u"], ascending=[True, False]).groupby("sl").head(20).index
+    dev = P.loc[selected, ["sl", "h", "s", "sc", "t1", "u0", "lin", "ev"]].copy()
+    dev = dev.rename(columns={"sl": "slot", "s": "s1"})
+    dev["pool"] = dev.slot.to_numpy() // 900
+    dev["fold"] = fold[selected]
+    dev["m_p"] = P.groupby("sl").ev.sum().reindex(dev.slot).to_numpy()
+    hand_index = pd.read_parquet(f"{OUT}/np/hand_index.parquet").set_index("hi")
+    player_index = pd.read_parquet(f"{OUT}/np/player_index.parquet").set_index("pi")
+    player_map = dict(zip(player_index.player_id, player_index.index))
+    local_index = loc.set_index("player_gi")
+    labels = pd.read_csv(
+        f"{os.environ['POKER_DATA_DIR']}/development_labels.csv", dtype={"pair_id": str}
+    )
+    low = np.minimum(labels.player_1.map(player_map), labels.player_2.map(player_map))
+    high = np.maximum(labels.player_1.map(player_map), labels.player_2.map(player_map))
+    labels["slot"] = (
+        local_index.pool.loc[low].to_numpy() * 900
+        + local_index.local.loc[low].to_numpy() * 30
+        + local_index.local.loc[high].to_numpy()
+    )
+    dev["pair_id"] = dev.slot.map(labels.set_index("slot").pair_id)
+    dev["hand_id"] = hand_index.hand_id.reindex(dev.h).to_numpy()
+    dev["pair_player_lo"] = player_index.player_id.reindex(plo[selected]).to_numpy()
+    dev["pair_player_hi"] = player_index.player_id.reindex(phi[selected]).to_numpy()
+    dev["gen_rank_all"] = X.loc[selected, "gen_rank_pct"].to_numpy()
+    extras = [
+        "o_lost_dr", "o_flow_dr", "tpl_cos", "wit_r2c_max", "o_dir_agree",
+        "facing_mx", "S_sur_aggr_act_mx", "tpl_mass", "eq_fold_to_mx",
+        "P_pos_mx", "o_net", "flow_mx", "z_o_contrib",
+    ]
+    missing = sorted(set(extras) - set(X))
+    if missing:
+        raise ValueError(f"Missing development gameplay extras: {missing}")
+    for name in extras:
+        dev[name] = X.loc[selected, name].to_numpy()
+    if dev[["pair_id", "hand_id", "pair_player_lo", "pair_player_hi"]].isna().any().any():
+        raise ValueError("Development candidate IDs are incomplete")
+    dev.to_parquet(f"{OUT}/r5_dev_candidates.parquet", index=False)
 print("beta norm", round(float(np.linalg.norm(beta)), 4), "rows", len(rows))
 print(json.dumps({"families_saved": 3, "beta_norm": round(float(np.linalg.norm(beta)), 4)},
                  indent=1))

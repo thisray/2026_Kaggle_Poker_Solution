@@ -30,7 +30,8 @@ def build(candidate_path: Path, extras_path: Path, output_path: Path) -> None:
     missing |= set(keys + EXTRAS) - set(extras)
     if missing:
         raise ValueError(f"Missing TabICL input fields: {sorted(missing)}")
-    result = candidates[keys + SCORES].merge(
+    metadata = [name for name in ("pair_id", "pool", "fold", "ev", "m_p") if name in candidates]
+    result = candidates[keys + metadata + SCORES].merge(
         extras[keys + EXTRAS], on=keys, how="left", validate="one_to_one"
     )
     if result[EXTRAS].isna().any().any():

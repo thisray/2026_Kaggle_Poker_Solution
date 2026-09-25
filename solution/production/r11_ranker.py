@@ -124,12 +124,13 @@ def fit(pack, out, seed=71, rounds=500, cat_rounds=400, threads=4, cv_only=False
         fit_one(d.loc[tr].reset_index(drop=True), mom[tr], out / f'fold_{fold}', seed, rounds, cat_rounds, threads)
         pred = predict_one(d.loc[va].reset_index(drop=True), mom[va], out / f'fold_{fold}')
         zs[va] = np.column_stack(pred)
-    pred = d[['slot', 'hand_id', 'pool', 'fold', 'ev', 'm_p']].copy()
+    pred = d[[c for c in ['slot', 'pair_id', 'hand_id', 'pool', 'fold', 'ev', 'm_p'] if c in d]].copy()
     report = {'baseline_E': float(metrics(d, d.u_r5b).E.mean()),
               'scope': 'frozen-upstream CV; score-consistency simplified variant'}
     for j, name in enumerate(['cat', 'ranker', 'blend']):
         pred[name] = zs[:, j]; mp = metrics(d, zs[:, j]); report[name + '_E'] = float(mp.E.mean())
         mp.to_csv(out / f'{name}_per_pair.csv', index=False)
+    pred['score'] = pred['blend']
     pred.to_csv(out / 'oof_scores.csv.gz', index=False)
     if not cv_only: fit_one(d, mom, out / 'full', seed, rounds, cat_rounds, threads)
     (out / 'cv_summary.json').write_text(json.dumps(report, indent=2)); return report

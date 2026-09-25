@@ -8,7 +8,8 @@ lg = lambda p: np.log(np.clip(p, 1e-6, 1 - 1e-6) / (1 - np.clip(p, 1e-6, 1 - 1e-
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--input', required=True); p.add_argument('--np-dir', required=True)
-    p.add_argument('--local-index', required=True); p.add_argument('--nn'); p.add_argument('--out', required=True)
+    p.add_argument('--local-index', required=True); p.add_argument('--nn', required=True)
+    p.add_argument('--slot-pairs', required=True); p.add_argument('--out', required=True)
     a = p.parse_args()
     c = pd.read_parquet(a.input).rename(columns={'sl': 'slot'})
     nn = pd.read_parquet(a.nn).rename(columns={'sl': 'slot'})
@@ -38,6 +39,12 @@ def main():
             'gen_logit', 'gen_rank_pct', 'rank_u_r5b']
     for k in keep:
         out[k] = c[k].to_numpy()
+    slot_pairs = pd.read_csv(a.slot_pairs, dtype={'pair_id': str})[['slot', 'pair_id']]
+    if slot_pairs.slot.duplicated().any():
+        raise ValueError('Duplicate slot in evaluation pair mapping')
+    out = out.merge(slot_pairs, on='slot', how='left', validate='many_to_one')
+    if out.pair_id.isna().any():
+        raise ValueError('Candidate slot is absent from evaluation pairs')
     out.to_csv(a.out, index=False)
     print('exported', len(out), 'rows,', out.slot.nunique(), 'pairs, cols', out.shape[1])
 

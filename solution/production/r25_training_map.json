@@ -1,0 +1,1025 @@
+{
+  "m15_o_cat_drop": {
+    "args": [
+      "drop",
+      "m26",
+      "o_cat_drop"
+    ],
+    "confidence": "inferred",
+    "env": {
+      "LEARNER": "cat",
+      "SEEDS": "7"
+    },
+    "script": "m36_pair_ens.py",
+    "source": "inferred_from_name_and_m36_source"
+  },
+  "m15_o_cat_pos": {
+    "args": [
+      "pos",
+      "m26",
+      "o_cat_pos"
+    ],
+    "confidence": "inferred",
+    "env": {
+      "LEARNER": "cat",
+      "SEEDS": "7"
+    },
+    "script": "m36_pair_ens.py",
+    "source": "historical/recovered/gb10_opus_r1/m36_pair_ens.py; seed inferred from default"
+  },
+  "m15_o_cat_pos2": {
+    "args": [
+      "pos",
+      "m26",
+      "o_cat_pos2"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "LEARNER": "cat",
+      "SEEDS": "37"
+    },
+    "script": "m36_pair_ens.py",
+    "source": "historical/recovered/gb10_opus_r1/run_variants4.sh"
+  },
+  "m15_o_cat_pos3": {
+    "args": [
+      "pos",
+      "m9",
+      "o_cat_pos3"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "LEARNER": "cat",
+      "SEEDS": "41"
+    },
+    "script": "m36_pair_ens.py",
+    "source": "historical/recovered/gb10_opus_r1/run_variants4.sh"
+  },
+  "m15_o_dart_a": {
+    "args": [
+      "pos",
+      "m26",
+      "o_dart_a"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "BOOST": "dart",
+      "LEAVES": "31",
+      "ROUNDS": "400",
+      "SEED": "401"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants3.sh"
+  },
+  "m15_o_drop_c": {
+    "args": [
+      "drop",
+      "m26",
+      "o_drop_c"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.35",
+      "LEAVES": "63",
+      "LR": "0.02",
+      "ROUNDS": "1200",
+      "SEED": "101"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh"
+  },
+  "m15_o_drop_d": {
+    "args": [
+      "drop",
+      "m26",
+      "o_drop_d"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.7",
+      "LEAVES": "15",
+      "LR": "0.04",
+      "MINLEAF": "80",
+      "SEED": "202"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh"
+  },
+  "m15_o_drop_f": {
+    "args": [
+      "drop",
+      "m9",
+      "o_drop_f"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.5",
+      "LEAVES": "31",
+      "LR": "0.03",
+      "SEED": "404"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh"
+  },
+  "m15_o_drop_g": {
+    "args": [
+      "drop",
+      "m26",
+      "o_drop_g"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.3",
+      "L2": "10",
+      "LEAVES": "127",
+      "LR": "0.02",
+      "MINLEAF": "20",
+      "ROUNDS": "1500",
+      "SEED": "505"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh"
+  },
+  "m15_o_drop_n": {
+    "args": [
+      "drop",
+      "m9",
+      "o_drop_n"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.55",
+      "LEAVES": "31",
+      "LR": "0.03",
+      "SEED": "149"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants2.sh"
+  },
+  "m15_o_extra_c": {
+    "args": [
+      "pos",
+      "m26",
+      "o_extra_c"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "EXTRA": "1",
+      "FF": "0.4",
+      "LEAVES": "63",
+      "SEED": "163"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants3.sh"
+  },
+  "m15_o_extra_d": {
+    "args": [
+      "drop",
+      "m26",
+      "o_extra_d"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "EXTRA": "1",
+      "FF": "0.6",
+      "LEAVES": "31",
+      "SEED": "211"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants3.sh"
+  },
+  "m15_o_extra_f": {
+    "args": [
+      "drop",
+      "m9",
+      "o_extra_f"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "EXTRA": "1",
+      "FF": "0.5",
+      "LEAVES": "47",
+      "SEED": "419"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants3.sh"
+  },
+  "m15_o_extra_i": {
+    "args": [
+      "pos",
+      "m26",
+      "o_extra_i"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "EXTRA": "1",
+      "FF": "0.35",
+      "LEAVES": "95",
+      "LR": "0.025",
+      "SEED": "557"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants4.sh"
+  },
+  "m15_o_fam_ci": {
+    "args": [
+      "pos",
+      "m26",
+      "o_fam_ci"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FAMTARGET": "coordinated_isolation",
+      "LEAVES": "31",
+      "SEED": "821"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_fam.sh"
+  },
+  "m15_o_fam_dt": {
+    "args": [
+      "pos",
+      "m26",
+      "o_fam_dt"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FAMTARGET": "directed_transfer",
+      "LEAVES": "31",
+      "SEED": "801"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_fam.sh"
+  },
+  "m15_o_fam_dt2": {
+    "args": [
+      "drop",
+      "m26",
+      "o_fam_dt2"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FAMTARGET": "directed_transfer",
+      "LEAVES": "63",
+      "LR": "0.025",
+      "SEED": "833"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_fam.sh"
+  },
+  "m15_o_fam_dt3": {
+    "args": [
+      "drop",
+      "m9",
+      "o_fam_dt3"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FAMTARGET": "directed_transfer",
+      "FF": "0.6",
+      "LEAVES": "31",
+      "SEED": "853"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_fam.sh"
+  },
+  "m15_o_fam_sp": {
+    "args": [
+      "pos",
+      "m26",
+      "o_fam_sp"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FAMTARGET": "soft_play",
+      "LEAVES": "31",
+      "SEED": "811"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_fam.sh"
+  },
+  "m15_o_fam_sp2": {
+    "args": [
+      "drop",
+      "m26",
+      "o_fam_sp2"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FAMTARGET": "soft_play",
+      "LEAVES": "63",
+      "LR": "0.025",
+      "SEED": "841"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_fam.sh"
+  },
+  "m15_o_goss_b": {
+    "args": [
+      "pos",
+      "m26",
+      "o_goss_b"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "BOOST": "goss",
+      "LEAVES": "63",
+      "LR": "0.04",
+      "SEED": "151"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants3.sh"
+  },
+  "m15_o_goss_e": {
+    "args": [
+      "drop",
+      "m26",
+      "o_goss_e"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "BOOST": "goss",
+      "LEAVES": "31",
+      "LR": "0.03",
+      "SEED": "307"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants3.sh"
+  },
+  "m15_o_goss_g": {
+    "args": [
+      "pos",
+      "m26",
+      "o_goss_g"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "BOOST": "goss",
+      "LEAVES": "31",
+      "LR": "0.03",
+      "SEED": "523"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants4.sh"
+  },
+  "m15_o_goss_h": {
+    "args": [
+      "pos",
+      "m9",
+      "o_goss_h"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "BOOST": "goss",
+      "LEAVES": "63",
+      "LR": "0.035",
+      "SEED": "541"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants4.sh"
+  },
+  "m15_o_goss_j": {
+    "args": [
+      "drop",
+      "m26",
+      "o_goss_j"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "BOOST": "goss",
+      "LEAVES": "63",
+      "LR": "0.04",
+      "SEED": "571"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants4.sh"
+  },
+  "m15_o_mlp_a": {
+    "args": [
+      "pos",
+      "m26",
+      "o_mlp_a"
+    ],
+    "confidence": "inferred_command",
+    "env": {
+      "SEED": "7"
+    },
+    "script": "r25_pair_mlp.py",
+    "source": "GB10 opus-r1/t74_mlp_pair.py sha256 a46131732f8c5388116a5b44da8c6e2513e52ac03428aad4eae3230bb1a12e9f"
+  },
+  "m15_o_mlp_b": {
+    "args": [
+      "pos",
+      "m26",
+      "o_mlp_b"
+    ],
+    "confidence": "inferred_command",
+    "env": {
+      "HIDDEN": "64,32",
+      "SEED": "11"
+    },
+    "script": "r25_pair_mlp.py",
+    "source": "GB10 opus-r1/t74_mlp_pair.py sha256 a46131732f8c5388116a5b44da8c6e2513e52ac03428aad4eae3230bb1a12e9f"
+  },
+  "m15_o_none_e": {
+    "args": [
+      "none",
+      "m26",
+      "o_none_e"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.5",
+      "LEAVES": "31",
+      "LR": "0.03",
+      "SEED": "303"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh"
+  },
+  "m15_o_p2_a": {
+    "args": [
+      "pos",
+      "m26",
+      "o_p2_a"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FEATVIEW": "71:0.7",
+      "FF": "0.45",
+      "LEAVES": "47",
+      "LR": "0.028",
+      "SEED": "901"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants6.sh"
+  },
+  "m15_o_p2_b": {
+    "args": [
+      "pos",
+      "m9",
+      "o_p2_b"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "BOOST": "goss",
+      "FF": "0.5",
+      "LEAVES": "31",
+      "LR": "0.03",
+      "SEED": "907"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants6.sh"
+  },
+  "m15_o_p2_c": {
+    "args": [
+      "pos",
+      "m26",
+      "o_p2_c"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.35",
+      "LEAVES": "79",
+      "LR": "0.022",
+      "MINLEAF": "35",
+      "SEED": "911"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants6.sh"
+  },
+  "m15_o_p2_e": {
+    "args": [
+      "pos",
+      "m9",
+      "o_p2_e"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FEATVIEW": "83:0.6",
+      "FF": "0.4",
+      "LEAVES": "63",
+      "LR": "0.026",
+      "SEED": "929"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants6.sh"
+  },
+  "m15_o_p2_f": {
+    "args": [
+      "pos",
+      "m26",
+      "o_p2_f"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.6",
+      "LEAVES": "31",
+      "LR": "0.03",
+      "SEED": "937",
+      "TOUCH": "1"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants6.sh"
+  },
+  "m15_o_pos_a": {
+    "args": [
+      "pos",
+      "m26",
+      "o_pos_a"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.5",
+      "LEAVES": "31",
+      "LR": "0.03",
+      "SEED": "11"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh"
+  },
+  "m15_o_pos_b": {
+    "args": [
+      "pos",
+      "m26",
+      "o_pos_b"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.35",
+      "LEAVES": "63",
+      "LR": "0.02",
+      "ROUNDS": "1200",
+      "SEED": "23"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh"
+  },
+  "m15_o_pos_h": {
+    "args": [
+      "pos",
+      "m26",
+      "o_pos_h"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.6",
+      "LEAVES": "15",
+      "LR": "0.03",
+      "MINLEAF": "60",
+      "SEED": "606"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh"
+  },
+  "m15_o_pos_i": {
+    "args": [
+      "pos",
+      "m26",
+      "o_pos_i"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.45",
+      "LEAVES": "31",
+      "LR": "0.025",
+      "ROUNDS": "1000",
+      "SEED": "71"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants2.sh"
+  },
+  "m15_o_pos_j": {
+    "args": [
+      "pos",
+      "m9",
+      "o_pos_j"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.5",
+      "LEAVES": "31",
+      "LR": "0.03",
+      "SEED": "83"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants2.sh"
+  },
+  "m15_o_pos_k": {
+    "args": [
+      "pos",
+      "m26",
+      "o_pos_k"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.6",
+      "LEAVES": "63",
+      "LR": "0.03",
+      "MINLEAF": "25",
+      "SEED": "97"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants2.sh"
+  },
+  "m15_o_pos_l": {
+    "args": [
+      "pos",
+      "m26",
+      "o_pos_l"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.4",
+      "L2": "5",
+      "LEAVES": "15",
+      "LR": "0.035",
+      "SEED": "113"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants2.sh"
+  },
+  "m15_o_pos_m": {
+    "args": [
+      "pos",
+      "m26",
+      "o_pos_m"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FF": "0.35",
+      "LEAVES": "95",
+      "LR": "0.02",
+      "MINLEAF": "30",
+      "ROUNDS": "1400",
+      "SEED": "131"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants2.sh"
+  },
+  "m15_o_touch_a": {
+    "args": [
+      "pos",
+      "m26",
+      "o_touch_a"
+    ],
+    "confidence": "inferred_command",
+    "env": {
+      "SEED": "7",
+      "TOUCH": "1"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "GB10 opus-r1/t69_pair_variant.py; TOUCH hook"
+  },
+  "m15_o_touch_b": {
+    "args": [
+      "pos",
+      "m26",
+      "o_touch_b"
+    ],
+    "confidence": "inferred_command",
+    "env": {
+      "SEED": "11",
+      "TOUCH": "1"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "GB10 opus-r1/t69_pair_variant.py; TOUCH hook"
+  },
+  "m15_o_view_a": {
+    "args": [
+      "pos",
+      "m26",
+      "o_view_a"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FEATVIEW": "11:0.6",
+      "LEAVES": "31",
+      "SEED": "611"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants5.sh"
+  },
+  "m15_o_view_b": {
+    "args": [
+      "pos",
+      "m26",
+      "o_view_b"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FEATVIEW": "23:0.5",
+      "LEAVES": "63",
+      "LR": "0.025",
+      "SEED": "623"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants5.sh"
+  },
+  "m15_o_view_c": {
+    "args": [
+      "drop",
+      "m26",
+      "o_view_c"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FEATVIEW": "37:0.65",
+      "LEAVES": "31",
+      "SEED": "637"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants5.sh"
+  },
+  "m15_o_view_d": {
+    "args": [
+      "pos",
+      "m9",
+      "o_view_d"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "FEATVIEW": "41:0.55",
+      "LEAVES": "31",
+      "SEED": "641"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants5.sh"
+  },
+  "m15_o_view_e": {
+    "args": [
+      "pos",
+      "m26",
+      "o_view_e"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "BOOST": "goss",
+      "FEATVIEW": "53:0.45",
+      "LEAVES": "63",
+      "LR": "0.035",
+      "SEED": "653"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants5.sh"
+  },
+  "m15_o_view_f": {
+    "args": [
+      "drop",
+      "m26",
+      "o_view_f"
+    ],
+    "confidence": "recovered",
+    "env": {
+      "EXTRA": "1",
+      "FEATVIEW": "67:0.7",
+      "LEAVES": "47",
+      "SEED": "667"
+    },
+    "script": "r25_pair_variant.py",
+    "source": "recovered/gb10_opus_r1/run_variants5.sh"
+  },
+  "m15_v6_drop_m26": {
+    "args": [
+      "drop",
+      "m26",
+      "v6_drop_m26"
+    ],
+    "confidence": "inferred",
+    "env": {},
+    "script": "r25_pair_variant.py",
+    "source": "historical/recovered/gb10_opus_r1/t69_pair_variant.py; command reconstructed from tag"
+  },
+  "m15_v6_none_m26": {
+    "args": [
+      "none",
+      "m26",
+      "v6_none_m26"
+    ],
+    "confidence": "inferred",
+    "env": {},
+    "script": "r25_pair_variant.py",
+    "source": "historical/recovered/gb10_opus_r1/t69_pair_variant.py; command reconstructed from tag"
+  },
+  "m15_v6base_r2": {
+    "args": [
+      "drop",
+      "m26",
+      "v6base_r2"
+    ],
+    "confidence": "reconstructed_from_source",
+    "env": {},
+    "script": "r25_pair_base.py",
+    "source": "scripts/opus_r1/m15_pair3.py"
+  },
+  "m15_v6casc_k3000": {
+    "args": [
+      "drop",
+      "m26",
+      "v6casc_k3000"
+    ],
+    "confidence": "reconstructed_from_source",
+    "env": {
+      "KTOP": "3000"
+    },
+    "script": "r25_pair_cascade.py",
+    "source": "scripts/opus_r2/m33_pair_cascade.py"
+  },
+  "m15_v6casc_k6000": {
+    "args": [
+      "drop",
+      "m26",
+      "v6casc_k6000"
+    ],
+    "confidence": "reconstructed_from_source",
+    "env": {
+      "KTOP": "6000"
+    },
+    "script": "r25_pair_cascade.py",
+    "source": "scripts/opus_r2/m33_pair_cascade.py"
+  },
+  "m15_v6ens_base": {
+    "confidence": "recovered",
+    "reuse": true,
+    "source": "production_runner.py or m5_pair.py; generated earlier in the same fresh run"
+  },
+  "m15_v6ens_cat": {
+    "confidence": "recovered",
+    "reuse": true,
+    "source": "production_runner.py or m5_pair.py; generated earlier in the same fresh run"
+  },
+  "m15_v6ens_cat11": {
+    "confidence": "recovered",
+    "reuse": true,
+    "source": "production_runner.py or m5_pair.py; generated earlier in the same fresh run"
+  },
+  "m15_v6ens_seed3": {
+    "args": [
+      "drop",
+      "m26",
+      "v6ens_seed3"
+    ],
+    "confidence": "inferred",
+    "env": {
+      "LEARNER": "lgb",
+      "SEEDS": "3"
+    },
+    "script": "m36_pair_ens.py",
+    "source": "historical/recovered/gb10_opus_r1/m36_pair_ens.py; seed inferred from tag"
+  },
+  "m15_v6isf": {
+    "args": [
+      "drop",
+      "m26",
+      "v6isf"
+    ],
+    "confidence": "reconstructed_from_source",
+    "env": {
+      "INFOFEAT": "1"
+    },
+    "script": "r25_pair_info.py",
+    "source": "scripts/opus_r2/m34_pair_info.py"
+  },
+  "m15_v6lr_r2": {
+    "args": [
+      "drop",
+      "m26",
+      "v6lr_r2"
+    ],
+    "confidence": "reconstructed_from_source",
+    "env": {
+      "LRFEAT": "1"
+    },
+    "script": "r25_pair_lr.py",
+    "source": "scripts/opus_r2/m32_pair_lr.py"
+  },
+  "m15_v6mlr": {
+    "args": [
+      "drop",
+      "m26",
+      "v6mlr"
+    ],
+    "confidence": "reconstructed_from_source",
+    "env": {
+      "MLRFEAT": "1"
+    },
+    "script": "r25_pair_mlr.py",
+    "source": "scripts/opus_r2/m35_pair_mlr.py"
+  },
+  "m15_v7_drop_contrast": {
+    "args": [
+      "drop",
+      "m26",
+      "v7_drop_contrast"
+    ],
+    "confidence": "reconstructed_from_source",
+    "env": {
+      "CONTRAST": "1"
+    },
+    "script": "r25_pair_contrast.py",
+    "source": "GB10 opus-r1/m31_pair_contrast.py sha256 1e4bdda6fe2e42a6aa5d2dfae4e4f26e425a2b35e18f69b8a6dda24309f95873"
+  },
+  "m5_both": {
+    "confidence": "recovered",
+    "reuse": true,
+    "source": "production_runner.py or m5_pair.py; generated earlier in the same fresh run"
+  },
+  "m5_v1only": {
+    "args": [
+      "v1only"
+    ],
+    "confidence": "recovered",
+    "env": {},
+    "script": "m5_pair.py",
+    "source": "historical/scripts/opus_r1/m5_pair.py"
+  },
+  "q2_drop_d5": {
+    "args": [
+      "drop",
+      "m26",
+      "q2_drop_d5"
+    ],
+    "confidence": "inferred",
+    "env": {
+      "EXTRA_SUBS": "13,14,15",
+      "FF": "0.7",
+      "LEAVES": "15",
+      "LR": "0.04",
+      "MINLEAF": "80",
+      "SEED": "202"
+    },
+    "script": "r25_pair_more_subs.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh; q2_pair_more_subs.py"
+  },
+  "q2_pos_a5": {
+    "args": [
+      "pos",
+      "m26",
+      "q2_pos_a5"
+    ],
+    "confidence": "inferred",
+    "env": {
+      "EXTRA_SUBS": "13,14,15",
+      "FF": "0.5",
+      "LEAVES": "31",
+      "LR": "0.03",
+      "SEED": "11"
+    },
+    "script": "r25_pair_more_subs.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh; q2_pair_more_subs.py"
+  },
+  "q2_pos_h5": {
+    "args": [
+      "pos",
+      "m26",
+      "q2_pos_h5"
+    ],
+    "confidence": "inferred",
+    "env": {
+      "EXTRA_SUBS": "13,14,15",
+      "FF": "0.6",
+      "LEAVES": "15",
+      "LR": "0.03",
+      "MINLEAF": "60",
+      "SEED": "606"
+    },
+    "script": "r25_pair_more_subs.py",
+    "source": "recovered/gb10_opus_r1/run_variants.sh; q2_pair_more_subs.py"
+  },
+  "q2_pos_i5": {
+    "args": [
+      "pos",
+      "m26",
+      "q2_pos_i5"
+    ],
+    "confidence": "inferred",
+    "env": {
+      "EXTRA_SUBS": "13,14,15",
+      "FF": "0.45",
+      "LEAVES": "31",
+      "LR": "0.025",
+      "ROUNDS": "1000",
+      "SEED": "71"
+    },
+    "script": "r25_pair_more_subs.py",
+    "source": "recovered/gb10_opus_r1/run_variants2.sh; q2_pair_more_subs.py"
+  },
+  "q2_pos_l5": {
+    "args": [
+      "pos",
+      "m26",
+      "q2_pos_l5"
+    ],
+    "confidence": "inferred",
+    "env": {
+      "EXTRA_SUBS": "13,14,15",
+      "FF": "0.4",
+      "L2": "5",
+      "LEAVES": "15",
+      "LR": "0.035",
+      "SEED": "113"
+    },
+    "script": "r25_pair_more_subs.py",
+    "source": "recovered/gb10_opus_r1/run_variants2.sh; q2_pair_more_subs.py"
+  }
+}

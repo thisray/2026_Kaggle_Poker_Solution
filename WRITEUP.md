@@ -2,31 +2,41 @@
 
 ## Result and task
 
-Our team, **thisray**, placed provisionally **6th of 370**, with **0.92501 public / 0.92888 private** from `r10_ci.csv`. This writeup describes the competition-time solution and the evidence-retrieval change behind that submission.
+Our team, **thisray**, placed provisionally **6th of 370**, with **0.92501 public / 0.92888 private** from `r10_ci.csv`. The task was to rank suspicious player pairs, predict a coordination family, and retrieve up to five hands supporting each alert. The metric combined **Pair AP (70%)**, **Evidence MAP@5 (20%)**, and **Behavior MAP (10%)**.
 
-The task was retrospective analysis of synthetic poker histories: rank potentially coordinated player pairs, predict a behavior family, and retrieve up to five supporting hands. The score combined **Pair AP (70%)**, **Evidence MAP@5 (20%)**, and **Behavior MAP (10%)**. We separated pair ranking from hand retrieval: a suspicious relationship can contain many ordinary hands, while a striking individual hand can have an innocent explanation.
+We treated pair detection and evidence retrieval as related but separate problems. A coordinated relationship can contain many ordinary hands, while an unusual individual hand can still have a benign explanation. This separation became especially important because evidence retrieval was a meaningful part of the score rather than only an explanation layer.
 
-## Ranking pairs and assigning behavior
+## Pair ranking and behavior routing
 
-We built features from betting actions, amounts, cards, boards, positions, stacks, outcomes, and responses to other players. They described one-way chip movement, passive responses to a partner, pressure on outsiders, and departures from ordinary play in comparable situations. These hand-level observations and their pair-level summaries fed a weighted rank blend of one LightGBM model and two CatBoost models. IDs linked records and defined groups; their encodings were not features.
+All predictive signals came from published poker data: betting actions and amounts, cards and boards, position, stack and pot context, outcomes, and responses to other players. IDs were used for joins, grouping, folds, and stable bookkeeping; their encodings were not predictive features.
 
-The public labels were incomplete. We used unlisted pairs as imperfect comparison examples and excluded some model-flagged potential positives from negative training. Supervised validation was grouped by player pool. However, repeated development and shared upstream features meant these diagnostics were not a fully nested evaluation of the entire final system.
+The public labels were positive-unlabelled. Pairs absent from `development_labels.csv` were therefore not treated as ground-truth negatives. We used them as imperfect comparison examples, while excluding some model-flagged likely positives from negative training. Validation was grouped by player pool so folds did not share the same table population.
 
-A separate classifier handled the three disclosed families: directed transfer, soft play, and coordinated isolation. We also used a gameplay statistic relating a player's actions to the partner's private-card strength to nominate fourth-family candidates. This route assigned **77 evaluation pairs** to `other_coordination` and adjusted their ranking. Those assignments were model-derived hypotheses about the undisclosed family.
+The main pair-risk score was a rank blend of one LightGBM model and two CatBoost models with weights **0.50 / 0.25 / 0.25**. A separate model routed the three disclosed families: directed transfer, soft play, and coordinated isolation.
 
-## Retrieving supporting hands
+We also searched for the undisclosed fourth family using gameplay rather than identifiers. A partner-card-dependence statistic measured whether a player's decisions changed with the partner's private-card strength. This route nominated **77 evaluation pairs** as `other_coordination` and inserted them into the risk ranking. These were model-derived hypotheses about the hidden family, not access to hidden labels.
 
-The baseline evidence pipeline used family-specific hand scores, additional ranking features, and a blend with **TabICLv2**, an external pretrained tabular model. Family-specific ranking let chip-flow direction influence directed-transfer evidence, passive partner responses influence soft-play evidence, and outsider pressure influence isolation evidence.
+## Evidence retrieval
 
-The fourth-family candidates had their own evidence rule. Our earlier **NDw** submission favored early shared hands with a model-indicated partner-card-linked decision and a pot won by either pair member. This distinguished a candidate relationship from the particular hands used to support it.
+Evidence ranking was family-aware. Directed-transfer candidates emphasized directional chip flow and concessions to the partner; soft-play candidates emphasized unusually passive responses to partner aggression; coordinated-isolation candidates emphasized pressure on outsiders together with reduced partner conflict.
 
-The final r10 change addressed coordinated isolation. Each public positive pair had at most five listed evidence hands. We modeled a full list as potentially censoring later qualifying events: after the fifth listed hand, an unlisted hand should not automatically become a clean training negative.
+The competition-time retrieval stack combined family-specific candidate models, a sequence-neural score, a learned within-pair ranker, and a **24-feature TabICLv2** view. The TabICLv2 features combined eleven candidate/ranking scores with thirteen gameplay-context features, and its within-pair rank was blended with the learned ranker. This gave the evidence system a different objective from pair risk: it had to find a small number of reviewable hands inside an already suspicious relationship.
 
-The event model estimated which hands qualified, then accounted for the probability that fewer than five qualifying events occurred earlier. We blended this ordering with the existing evidence rank and applied gameplay-based eligibility conditions. Chronology referred to recorded hand times, not CSV row order. The first-five assumption was our model of evidence selection, not an organizer-confirmed description of the hidden generator.
+The fourth-family candidates used a separate **NDw** rule. It favored early shared hands containing a model-indicated partner-card-linked decision and a pot won by either pair member. This kept the relationship-level fourth-family detector separate from the rule selecting particular supporting hands.
 
-The patch was applied to **591 routed pairs**, changing **564 ordered evidence lists**. Pair risks and predicted behaviors remained identical to NDw.
+## The final r10 change: censored evidence lists
 
-## What the leaderboard showed
+Our last r10 change focused on coordinated isolation. Each public positive pair had at most five listed evidence hands. Treating every unlisted hand as a clean negative is unsafe when later qualifying events may simply be omitted after the list is full.
+
+We therefore modeled a full list as a potentially right-censored event sequence. The event model estimated which hands qualified and then accounted for the probability that fewer than five qualifying events had occurred earlier. We blended this ordering with the existing evidence rank and applied gameplay-based eligibility conditions.
+
+Chronology used the recorded hand time, never CSV row order. The first-five interpretation was our statistical model of the released evidence lists, not an organizer-confirmed description of hidden generator internals.
+
+The CI patch was applied to **591 routed pairs** and changed **564 ordered five-hand lists**. It did not alter pair risks or predicted behaviors.
+
+## A later r32 variant
+
+A later second selected entry, r32, broadened pair-risk ensembling and used larger family-specific evidence ensembles. The competition-time risk fusion combined a 64-model historical group with five exposure-matched models, while later evidence stages used family-specific model zoos before the final routed patches. Kaggle automatically evaluated r10 and r32 because we had not manually selected final entries.
 
 | Competition-time submission | Public | Private |
 | --- | ---: | ---: |
@@ -34,14 +44,12 @@ The patch was applied to **591 routed pairs**, changing **564 ordered evidence l
 | r10 with CI evidence patch | 0.92501 | 0.92888 |
 | Later r32 ensemble | 0.92456 | 0.92738 |
 
-The CI patch gained **0.00198 public** and changed **−0.00005 private**. With risks and behaviors fixed, this measures the complete evidence patch; it does not isolate the censoring assumption from its other changes. The public improvement did not become a private improvement.
+The r10 CI patch improved public score by **0.00198** and changed private score by **−0.00005**. Since risk and behavior were fixed, this measures the complete evidence patch, but it does not isolate the censoring assumption from every other detail of that patch. The public improvement did not generalize into a private improvement. The broader r32 entry also scored below r10 on both splits.
 
-Kaggle automatically evaluated r10 and r32, our two highest-public-score submissions, because we made no manual final selections. NDw therefore did not determine our final team score despite its slightly higher private result. The expanded r32 combination also scored below r10 on both splits.
+## Validation, limitations, and reproduction
 
-## Materials and limits
+Our diagnostics were useful for model selection but were not a fully nested end-to-end evaluation: development labels and upstream representations were reused across repeated experiments. Public feedback also influenced late-stage choices. The benchmark is fully synthetic, so a high model score should be interpreted as a prompt for review, not as evidence about real-player intent.
+
+The accompanying repository contains setup and execution instructions, training and inference code for the selected-submission method, five evidence case reviews, and a separate exact final-assembly audit path. The external TabICLv2 dependency is publicly obtainable and documented. The exact assembly audit reproduced both original selected CSVs; the revised raw-data path has not completed a fresh end-to-end run, so no fresh score or output-similarity claim is made.
 
 **[Code and execution notes](https://github.com/thisray/2026_Kaggle_Poker_Solution) · [Five evidence case reviews](https://github.com/thisray/2026_Kaggle_Poker_Solution/blob/main/docs/CASE_REVIEWS.md)**
-
-The five reviews use hands actually submitted in r10. Each identifies the pair and hands, describes observable behavior, and gives a plausible benign alternative. Predicted behavior is a review hypothesis; synthetic-benchmark performance does not establish effectiveness on real-player data.
-
-The current implementation is a **partial reconstruction**, not yet a verified reproduction of the selected submissions. Its missing components and execution results are documented separately from the competition-time method above. Competition data are not redistributed.

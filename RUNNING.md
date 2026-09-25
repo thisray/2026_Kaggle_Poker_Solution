@@ -1,38 +1,8 @@
 # Running the solution code
 
-There are three entry points. Choose the one that matches your goal. None publishes a Kaggle writeup, submits to Kaggle, or changes this repository's visibility.
+## A. Primary prize-verification reproduction — `run_complete.py`
 
-| Entry point | Inputs | Output | Scope |
-| --- | --- | --- | --- |
-| `run_historical_assembly.py` | Four saved competition-time intermediate CSVs | The two **selected historical submission CSVs** | Exact final assembly; does not retrain upstream models |
-| `run_complete.py` | Eight official files and a public TabICL checkpoint | Two **new, complete-method submission CSVs** | Connected training/inference/assembly path; not yet full-data executed; predictions need not match history |
-| `run_all.py` | Eight official competition files | Two **legal partial-reconstruction CSVs** | Rebuilds part of the method; does not reproduce the selected submissions |
-
-## A. Assemble the selected submissions
-
-Use an isolated Python 3.11 conda environment with `pandas` installed. On our GB10, the four inputs live under `/home/thisray/projects/260916_Kaggle_Poker_artifacts/opus_r1_20260917`. A reviewer with those saved intermediate files can use any equivalent root directory. Competition-derived files are not redistributed in GitHub.
-
-| Path relative to `--artifact-root` | Role |
-| --- | --- |
-| `r2_candidates/r2n_NDw_on_r2j2m.csv` | r10 pair-risk, behavior, and pre-CI evidence base |
-| `r18/main/patch_r18hard.csv` | r10 CI evidence patch |
-| `r5/cand/r30_r29_spzoo.csv` | r32 risk, behavior, and pre-DT-zoo evidence base |
-| `r5/patch_r5_dt_zoo_gb15.csv` | r32 directed-transfer evidence patch |
-
-```bash
-conda create -n poker-solution python=3.11.16 pip -y
-conda activate poker-solution
-python -m pip install -r requirements.txt
-python run_historical_assembly.py \
-  --artifact-root /path/to/saved-competition-intermediates \
-  --output-dir /path/to/separate-output-directory
-```
-
-The output directory receives `r10_ci.csv`, `r32_r30_dtgb15.csv`, and `historical_assembly_receipt.json`. The receipt records input and output hashes and applied patch counts. Do not place the output directory inside the artifact root. On GB10, this command yielded 112,540 rows in each CSV; r10 applied the CI patch to 591 pairs and had SHA-256 `437da364b0975a1b6ed6c54cb48c0d3db73c82b9fb630fe8b703dbdfcf75506c`; r32 applied the DT patch to 1,529 pairs and had SHA-256 `97478ea2553168a6f3fe0209d898996a2bba1e70b9f871e3eb36eca7cd4a4e5a`. These match the historical selected files. This verifies the **last assembly step**, not the full upstream training chain.
-
-## B. Run the connected method from official data
-
-Run this on a host with enough CPU memory, disk, and a CUDA GPU (the original execution host was GB10). It trains the pair models, family models, within-pair model, R5 family rankers and neural candidate ranker, then fits a compact TabICL model, combines evidence ranks, and writes both variants. The r32 path uses a reproducible 3+5 grouped pair-risk fusion and type-specific evidence adjustments in place of the historical 64+5 risk zoo and 42-model evidence zoo. These are the same *kinds* of stages, not the same trained artifacts; no historical output hash or leaderboard score is promised. This code path is wired and syntax-checked, but **has not been run on all eight files**.
+The target is one command from the eight official competition files through preprocessing, training, inference, and validation. Use an isolated Python 3.11 conda environment on a host with sufficient CPU memory and scratch disk. TabICLv2 defaults to CPU, as in the recorded GB10 environment:
 
 ```bash
 conda create -n poker-solution python=3.11.16 pip -y
@@ -44,18 +14,33 @@ python run_complete.py \
   --tabicl-checkpoint /path/to/tabicl-classifier-v2-20260212.ckpt
 ```
 
-If you do not already have the public TabICL checkpoint, replace `--tabicl-checkpoint ...` with `--download-public-checkpoint` to explicitly allow its download. The command writes two CSVs and `run_complete_report.json`; it runs the same final submission legality validator. It never submits files to Kaggle. Keep the output directory on the compute host; large derived tables and model weights are not included in this GitHub repository.
+**Verification status:** the r32 manifest names 64 old and five new risk models. `solution/production/r25_training_map.json` maps all 69 to source code; several original shell configurations are explicitly marked as reconstructed. A fresh run from the eight files was stopped during policy inference to prioritize publication. The complete raw-data path has not yet produced two fresh CSVs, so no similarity or new score is claimed.
 
-## C. Run the earlier partial reconstruction from official data
+The target command needs only the eight official files and the public TabICLv2 checkpoint. `--download-public-checkpoint` explicitly permits the package to fetch it. The command does not submit to Kaggle or change repository visibility. Its intended outputs are `r10_ci.csv`, `r32_r30_dtgb15.csv`, and `run_complete_report.json`; the validator checks pair count, evidence uniqueness, evaluation phase, and shared pair membership. Plan for many hours on a large-memory Linux CPU host.
 
-Download these eight official files into one directory: `players.parquet`, `hands.parquet`, `seats.parquet`, `actions.parquet`, `development_labels.csv`, `development_evidence.csv`, `evaluation_pairs.csv`, and `sample_submission.csv`. After the same environment setup:
+## B. Exact historical final-assembly audit — `run_historical_assembly.py`
+
+This optional audit needs saved competition-time intermediate CSVs. It is separate from fresh training reproduction:
+
+```bash
+python run_historical_assembly.py \
+  --artifact-root /path/to/saved-competition-intermediates \
+  --output-dir /path/to/separate-output-directory
+```
+
+| Path relative to `--artifact-root` | Assembly role |
+| --- | --- |
+| `r2_candidates/r2n_NDw_on_r2j2m.csv` | r10 pre-CI base |
+| `r18/main/patch_r18hard.csv` | r10 coordinated-isolation patch |
+| `r5/cand/r30_r29_spzoo.csv` | r32 pre-DT base |
+| `r5/patch_r5_dt_zoo_gb15.csv` | r32 directed-transfer patch |
+
+The GB10 audit matched both original hashes. Its receipt records input and output hashes and applied patch counts. These saved files are not redistributed and are not inputs to the primary command.
+
+## C. Legacy partial reconstruction — `run_all.py`
 
 ```bash
 python run_all.py --data-dir /path/to/competition-data --output-dir outputs
 ```
 
-This writes `outputs/r10_ci.csv`, `outputs/r32_r30_dtgb15.csv`, and `outputs/run_report.json`. The names denote targets only: these are **not** the selected historical files, and their leaderboard scores are unknown. The optional `--build-r15-cache --build-r5-models` flags train more original components but do not turn this path into a complete selected-submission reproduction. See [README.md](README.md) for measured differences.
-
-## Where the remaining method code lives
-
-The [historical source map](historical/README.md) points to the original raw features, risk ensemble, family evidence, TabICLv2, and r32 zoo-patch code. Those modules used competition-time paths, saved checkpoints, and intermediate feature tables. They are available to inspect or adapt, but we have **not** consolidated them into a maintained, single-command raw-data-to-selected-submission pipeline. Do not report path A as independent end-to-end reproduction from the eight official files.
+This older path was run from the eight files and produced legal but partial reconstructions. It omits parts of the selected r10/r32 evidence and risk methods. The output names are reconstruction targets, not verified copies of the leaderboard submissions.

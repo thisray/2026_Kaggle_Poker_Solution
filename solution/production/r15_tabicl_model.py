@@ -4,6 +4,7 @@ No package installation or Kaggle submission is performed by this program.
 """
 from __future__ import annotations
 import argparse,json,hashlib,gc
+from importlib.metadata import version
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -47,10 +48,25 @@ def main(a):
     keep=[c for c in ['pair_id','slot','hand_id','pool','fold','ev','m_p',a.target] if c in d]
     keep=list(dict.fromkeys(keep));d[keep].assign(score=score).to_csv(out/'predictions.csv.gz',index=False)
     receipt={'mode':a.mode,'features':features,'checkpoint_version':'tabicl-classifier-v2-20260212.ckpt',
-       'checkpoint_path':a.checkpoint,'tabicl_version':getattr(tabicl,'__version__','unknown'),
+       'checkpoint_path':a.checkpoint,'checkpoint_repository':'jingang/TabICL',
+       'tabicl_version':version('tabicl'),
        'no_submission':True,'evidence_state':'EXECUTED_ON_INPUT_TABLE',
        'selection_scope':'predeclared features and existing folds; upstream scores need nested confirmation'}
-    if a.checkpoint and Path(a.checkpoint).exists():receipt['checkpoint_sha256']=hashlib.sha256(Path(a.checkpoint).read_bytes()).hexdigest()
+    checkpoint_path = Path(a.checkpoint) if a.checkpoint else None
+    if checkpoint_path is None:
+        from huggingface_hub import try_to_load_from_cache
+        cached = try_to_load_from_cache('jingang/TabICL', receipt['checkpoint_version'])
+        checkpoint_path = Path(cached) if isinstance(cached, str) else None
+    if checkpoint_path and checkpoint_path.is_file():
+        digest = hashlib.sha256()
+        with checkpoint_path.open('rb') as stream:
+            for block in iter(lambda: stream.read(8 * 1024 * 1024), b''):
+                digest.update(block)
+        receipt['checkpoint_sha256'] = digest.hexdigest()
+        receipt['resolved_checkpoint_path'] = str(checkpoint_path)
+        parts = checkpoint_path.parts
+        if 'snapshots' in parts:
+            receipt['checkpoint_revision'] = parts[parts.index('snapshots') + 1]
     (out/'receipt.json').write_text(json.dumps(receipt,indent=2))
 
 if __name__=='__main__':
