@@ -45,7 +45,10 @@ def make(hs, sa, sb, probs_file="dec_probs_v1.npy"):
     return X, M, S
 if __name__ == "__main__":
     t0 = time.time()
-    meta = pd.read_parquet(f"{OUT}/m6_handscores.parquet")   # sl, h, s, ev, rk, fam, pos, phase, ts (training universe of the GBDT hand model)
+    source = os.environ.get("POKER_SEQ_SOURCE", "m6_handscores.parquet")
+    meta = pd.read_parquet(f"{OUT}/{source}")
+    if os.environ.get("POKER_SEQ_POSITIVE_ONLY") == "1":
+        meta = meta[meta.pos & (meta.phase == 0)].sort_values(["sl", "ts"], kind="stable").reset_index(drop=True)
     import pairindex as PI
     # recover seats for each (slot, h): the lo player seat and hi player seat
     loc = pd.read_parquet(f"{OUT}/player_local_v1.parquet"); members = np.zeros((400, 30), np.int64)

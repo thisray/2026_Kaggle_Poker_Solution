@@ -9,7 +9,8 @@ X = np.load(f"{SEQ}/train_X.npy", mmap_mode="r"); M = np.load(f"{SEQ}/train_M.np
 meta = pd.read_parquet(f"{SEQ}/train_meta.parquet")
 idx = np.where((meta.pos.values == 1) & (meta.phase.values == 0))[0]
 P = meta.iloc[idx].reset_index(drop=True); P["ev"] = P.ev.astype(bool)
-gb = pd.read_parquet(f"{OUT}/m25e1_handfeat2_m19w10_oof.parquet").set_index(["sl", "h"])
+gb_source = os.environ.get("POKER_SEQ_GB_OOF", "m25e1_handfeat2_m19w10_oof.parquet")
+gb = pd.read_parquet(f"{OUT}/{gb_source}").set_index(["sl", "h"])
 gen = pd.read_parquet(f"{OUT}/m19w10_handscores.parquet").set_index(["sl", "h"]).s
 mi = pd.MultiIndex.from_arrays([P.sl.values, P.h.values])
 P["gbw"] = gb.sc_fam.reindex(mi).values; P["gen"] = gen.reindex(mi).values
