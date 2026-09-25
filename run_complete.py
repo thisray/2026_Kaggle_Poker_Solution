@@ -10,7 +10,6 @@ from pathlib import Path
 import time
 
 from solution.production_runner import run_production_spine
-from solution.validate import validate_submission
 
 
 def main() -> None:
@@ -19,6 +18,7 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--tabicl-checkpoint", type=Path)
     parser.add_argument("--download-public-checkpoint", action="store_true")
+    parser.add_argument("--tabicl-device", choices=("cpu", "cuda"), default="cpu")
     parser.add_argument("--threads", type=int, default=16)
     parser.add_argument("--resume-after-policy", action="store_true")
     parser.add_argument("--resume-after-evidence", action="store_true")
@@ -32,7 +32,10 @@ def main() -> None:
         resume_after_evidence=args.resume_after_evidence,
         complete=True, tabicl_checkpoint=args.tabicl_checkpoint,
         download_public_checkpoint=args.download_public_checkpoint,
+        tabicl_device=args.tabicl_device,
     )
+    from solution.validate import validate_submission
+
     results = {}
     for name in ("r10_ci", "r32_r30_dtgb15"):
         output = output_dir / f"{name}.csv"

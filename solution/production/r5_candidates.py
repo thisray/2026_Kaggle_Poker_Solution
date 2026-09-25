@@ -1,7 +1,6 @@
 """Export top-20 evaluation hands per pair with the historical R5 model."""
 import argparse
 import importlib
-import json
 import os
 import time
 from pathlib import Path
@@ -41,14 +40,13 @@ stats = np.load(args.stats, allow_pickle=True)
 mu, sd, num_cols = stats["mu"], stats["sd"], list(stats["num"])
 all_cols = open(f"{OUT}/r5_feature_cols.txt").read().split("\n")
 assert len(all_cols) == 487
-tabicl_feature_path = Path(OUT) / "r5_tabicl_feature_cols.json"
-tabicl_cols = json.loads(tabicl_feature_path.read_text()) if tabicl_feature_path.exists() else []
 typed_cols = ["o_flow_dr", "o_lost_dr", "eq_fold_to_mx", "facing_mx", "o_dir_agree"]
 B = np.load(args.rerank, allow_pickle=True)
 beta, fmu, fsd = B["beta"], B["fmu"], B["fsd"]
 rcols = list(B["feat_cols"])
 rscale = float(B["scale"])
 models_by_fam = [[lgb.Booster(model_file=str(args.models_dir / f"r5fam_{fi}_{FAMS[fi]}_f{f}.txt")) for f in range(5)] for fi in range(3)]
+t1_models = [lgb.Booster(model_file=str(args.models_dir / f"m25t1_handfeat2_fam_m19w10_f{f}.txt")) for f in range(5)]
 
 pidx = pd.read_parquet(f"{OUT}/np/player_index.parquet")
 pmap = dict(zip(pidx.player_id, pidx.pi))
@@ -123,6 +121,8 @@ while i0 < len(C):
     td[order], tc[order], tm[order] = dist, cos, SW[gid] - wo
     X["tpl_dist"], X["tpl_cos"], X["tpl_mass"] = td, tc, tm
     X = X[all_cols]
+    t1_cols = [c for c in all_cols if not c.startswith(("ev_", "wit_"))]
+    t1_scores = np.mean([model.predict(X[t1_cols], num_threads=12) for model in t1_models], axis=0)
     sc = np.zeros(len(X), np.float32)
     for kk in range(3):
         m = fi_arr == kk
@@ -130,9 +130,8 @@ while i0 < len(C):
             sc[m] = np.mean([mdl.predict(X[m], num_threads=12) for mdl in models_by_fam[kk]], axis=0)
     ts = ts_all[h]
     D = pd.DataFrame({"slot": sl, "h": h, "s1": s1, "s2": part.s2.values,
-                      "fi": fi_arr, "sa": sa, "sb": sb, "sc": sc, "ts": ts})
-    for col in tabicl_cols:
-        D[col] = X[col].to_numpy()
+                      "fi": fi_arr, "sa": sa, "sb": sb, "sc": sc,
+                      "t1": t1_scores, "ts": ts})
     for col in typed_cols:
         if col not in D:
             D[col] = X[col].to_numpy()
@@ -147,7 +146,7 @@ while i0 < len(C):
     D.loc[sel, "lin"] = Fv @ beta
     D["u"] = D.u0 + rscale * D.lin
     cand = D.sort_values(["slot", "u"], ascending=[True, False]).groupby("slot").head(TOPK)
-    candidate_cols = list(dict.fromkeys(["slot", "h", "s1", "s2", "fi", "sa", "sb", "sc", "u0", "lin", "u", "gen_rank_all", *tabicl_cols, *typed_cols]))
+    candidate_cols = list(dict.fromkeys(["slot", "h", "s1", "s2", "fi", "sa", "sb", "sc", "t1", "u0", "lin", "u", "gen_rank_all", *typed_cols]))
     out_tables.append(cand[candidate_cols])
     log("chunk done", i1, "of", len(C), "candidates so far", sum(len(x) for x in out_tables))
     i0 = i1

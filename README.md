@@ -1,85 +1,43 @@
-# Detect Suspicious Value Transfers in Poker — Solution and Reproduction Status
+# Detect Suspicious Value Transfers in Poker — Solution
 
-This repository documents our competition-time solution and has **three distinct execution paths**. `run_complete.py` connects the method stages from the eight official files to both output CSVs, without aiming for byte-identical historical predictions; this new full path has **not** had a full-data run. `run_historical_assembly.py` reconstructs the exact selected CSVs from four saved competition-time intermediate files; we reran it on GB10 and obtained the original SHA-256 hashes. `run_all.py` is the earlier, measured partial reconstruction. See [Running the code](RUNNING.md) for commands and the differences between these paths.
-
-For review, read the [draft Solution Writeup](WRITEUP.md) and the [five submitted-evidence case reviews](docs/CASE_REVIEWS.md) alongside this README. The Kaggle writeup remains an unpublished draft.
-
-The [historical source archive](historical/README.md) includes the original competition scripts and supporting code for both selected submissions. Its scripts are a method record, while [RUNNING.md](RUNNING.md) identifies the maintained entry points.
-
-To assemble the two selected CSVs when the saved competition intermediates are available, run:
-
-```bash
-python run_historical_assembly.py --artifact-root /path/to/saved-competition-intermediates --output-dir /path/to/separate-output-directory
-```
-
-If you only have the eight official raw files, use `run_all.py` as documented in [RUNNING.md](RUNNING.md); that path is partial and must not be described as the original leaderboard-producing run.
-
-For the connected method path from the official raw files, use `run_complete.py` as documented in [RUNNING.md](RUNNING.md). It trains its own compact TabICL model using an explicit public checkpoint and recreates family-aware candidate evidence and grouped r32 risk. This is a non-identical implementation of the solution method, not a replay of every historical model or score.
+The revised `run_complete.py` connects the recovered Round11 ranker, 24-feature TabICLv2 evidence view, 64+5 risk manifest, and family-specific r32 zoo patches. All 69 risk members have source mappings. Several original shell configurations were not preserved and are identified as reconstructed in the mapping. A fresh eight-file run was started and stopped during policy inference to prioritize the publication deliverables; the revised path has **not completed** end to end.
 
 ## Competition result
 
-| Item | Verified record |
+| Item | Verified competition-time record |
 | --- | --- |
 | Team | `thisray` |
 | Provisional private rank | 6th of 370, score `0.92888` |
 | Public score | `0.92501` |
-| Leaderboard-producing submission | `r10_ci.csv`, submission ref `56374362` |
-| Original r10 SHA-256 | `437da364b0975a1b6ed6c54cb48c0d3db73c82b9fb630fe8b703dbdfcf75506c` |
+| Displayed result | `r10_ci.csv`, submission `56374362` |
+| Second automatically selected entry | `r32_r30_dtgb15.csv`, submission `56406417`; public `0.92456`, private `0.92738` |
 
-We made no manual final selections, so Kaggle automatically evaluated our two highest-public-score submissions: r10 and `r32_r30_dtgb15.csv` (ref `56406417`; public `0.92456`, private `0.92738`). r10 produced the displayed team result. An earlier NDw base scored slightly higher on the private split (`0.92893`), but was not among the two automatically selected submissions.
+The original selected CSV hashes are `437da364b0975a1b6ed6c54cb48c0d3db73c82b9fb630fe8b703dbdfcf75506c` (r10) and `97478ea2553168a6f3fe0209d898996a2bba1e70b9f871e3eb36eca7cd4a4e5a` (r32). Fresh retraining does not need to match these bytes.
 
-## Competition-time method
+## Primary reproduction target
 
-The metric combined pair ranking (70%), evidence retrieval (20%), and behavior classification (10%). Features described poker activity—actions, bet sizes, positions, stacks, cards, boards, outcomes, timing, and responses to opponents. Identifiers were used for joins, grouping, folds, and stable ordering, not as predictive features.
-
-The r10 pair-risk base blended the ranks of one LightGBM and two CatBoost models with weights `0.50/0.25/0.25`. A separate classifier predicted the three disclosed behavior families. A partner-card-dependence signal nominated 77 evaluation pairs for the residual `other_coordination` route. Historical evidence retrieval used family-specific rankers, decision-context adjustments, a TabICLv2 blend, and a separate NDw rule for that residual route. The final r10 CI patch was applied to 591 routed pairs and changed 564 ordered five-hand lists; its pair risks and predicted behaviors were unchanged from NDw.
-
-The [Solution Writeup](https://www.kaggle.com/competitions/detect-suspicious-value-transfers-in-poker/writeups/ranking-suspicious-poker-pairs-and-finding-reviewa) is currently a **private draft**, not a published article.
-
-## What the code currently reproduces—and what it does not
-
-`run_all.py` reads the eight official competition files, builds features, trains the three-model pair ensemble and three-family classifier, restores the fourth-family signal, monotone rank insertion, and NDw evidence rule, generates m19 baseline evidence, applies a CI adapter, and validates output format and hand membership. It does not read a historical prediction CSV.
-
-This portable runner is **not yet the complete selected-submission method**. The r10 fourth-family branch has been restored, but a fresh run routed 74 of the original 77 pairs. The original family-ranker/TabICLv2 evidence code is available in `historical/`, but it is not wired into the runner's final r10 output. The r32-named output changes weights and baseline evidence within a smaller ensemble; it does not rebuild the historical r32 risk, directed-transfer, soft-play, or residual-family ensembles. The output filenames name reconstruction targets, not verified equivalents of the submitted files. These omitted execution branches cannot be explained by floating-point nondeterminism.
-
-The original Round11 ranker training code, TabICLv2 fit/predict code, and exact R15 rank-blend function are included as standalone modules. R5 candidate inference, sequence-NN inference, the 11-score export, 13 gameplay extras, and the 24-feature TabICL input builder are also present and spot-checked against historical assets. `run_all.py` does not use them yet: the complete historical orchestration remains to be consolidated. Original model weights and competition-derived tables are not committed here.
-The historical family-aware within-pair `s2` training and chunked inference modules are now included; a 100-pair comparison matched the original hand-cache scores exactly. They are not yet wired into the default runner, and the subsequent R5 training path is still incomplete.
-Use `--build-r15-cache` to run that optional training and cache stage before the runner frees its large gameplay arrays. The flag does not change the two current submission CSVs or complete the missing R5/TabICL pipeline.
-Use `--build-r15-cache --build-r5-models` to also train the historical R5 family models, template statistics, and rerank weights. This optional source path has not yet been verified in a new complete eight-file run and still does not wire R5/TabICL evidence into the selected CSVs.
-In a targeted GB10 run using saved upstream feature tables, this R5 trainer regenerated all 15 historical family model files, the template statistics, feature list, and rerank weights byte-for-byte. This does not substitute for a complete run from the eight official files.
-Using the original fitted TabICL checkpoint on the reconstructed 24-feature table reproduced all 80,000 historical evaluation scores exactly. This validates that inference seam, not the missing training and upstream feature-generation steps.
-
-Standalone modules also document the historical r25 64+5 risk fusion and r32 family-routed evidence patch assembly. They require model-score and patch inputs that `run_all.py` does not regenerate; they are not a shortcut around the missing upstream training and inference stages.
-
-## Data and setup
-
-Download the competition data from Kaggle and place these eight files in one directory: `players.parquet`, `hands.parquet`, `seats.parquet`, `actions.parquet`, `development_labels.csv`, `development_evidence.csv`, `evaluation_pairs.csv`, and `sample_submission.csv`. Competition data are not redistributed here.
-
-The recorded GB10 environment was Ubuntu 24.04.4 (aarch64), Python 3.11.16. For the current partial runner, use an isolated conda environment:
+Place the eight official files in one directory: `players.parquet`, `hands.parquet`, `seats.parquet`, `actions.parquet`, `development_labels.csv`, `development_evidence.csv`, `evaluation_pairs.csv`, and `sample_submission.csv`. On a capable Linux compute host with sufficient CPU memory and disk, the target command is:
 
 ```bash
 conda create -n poker-solution python=3.11.16 pip -y
 conda activate poker-solution
-python -m pip install -r requirements.txt
-python run_all.py --data-dir /path/to/competition-data --output-dir outputs
+python -m pip install -r requirements.txt -r requirements_tabicl.txt
+python run_complete.py \
+  --data-dir /path/to/competition-data \
+  --output-dir /path/to/output \
+  --tabicl-checkpoint /path/to/tabicl-classifier-v2-20260212.ckpt
 ```
 
-The default `--variant all` writes two reconstruction-target CSVs and `outputs/run_report.json`. The validator checks 112,540 unique pairs, score and behavior values, nonempty cells, duplicate evidence IDs, evaluation-phase hands, and both pair members' seats. Passing these checks does **not** establish a similar leaderboard score. `requirements.txt` covers only the current partial runner; restoring the historical TabICLv2 path also requires its package, checkpoint, provenance, and license information.
-The standalone TabICL module has additional versions in `requirements_tabicl.txt`; those dependencies are not needed for the current `run_all.py` path.
+The command provides the full preprocessing, training, and inference path. Its end-to-end output remains unverified because our fresh run was stopped before completion. The public TabICLv2 checkpoint can be supplied locally or downloaded with `--download-public-checkpoint`. The pinned dependency is `tabicl==2.2.0`; the checkpoint `tabicl-classifier-v2-20260212.ckpt` is available from [jingang/TabICL](https://huggingface.co/jingang/TabICL/blob/4dcd344ece2c00be9e831fdd35bed57b5ad83e19/tabicl-classifier-v2-20260212.ckpt) under BSD-3-Clause. The tested checkpoint SHA-256 is `bdc7dbd5e4ff21f8f0456fcf90c6b7cdf72dbea960f2d05b19bec19f9b3d4ed0`. The model receipt records package version and checkpoint hash. Competition data, weights, and generated submissions are not redistributed.
 
-## Measured reconstruction status
+TabICLv2 defaults to CPU inference and training, matching the recorded GB10 setup; `--tabicl-device cuda` is optional when a compatible CUDA Torch installation is available.
 
-Private Kaggle CPU Notebook v6 reran this code from the eight official files in `33,918.728` seconds. Both outputs passed submission-legality checks. Against the original submitted files:
+The intended method is raw preprocessing; pair-risk and behavior training; R5 family and sequence candidate models; the Round11 learned ranker; eleven candidate scores plus thirteen gameplay extras for TabICLv2; a 0.6 TabICL rank blend; the fourth-family NDw route; the r10 coordinated-isolation patch; and the r32 64+5 risk fusion with soft-play then directed-transfer zoo patches. Pair, player, and table IDs are joins and split keys, never model features.
 
-| Reconstruction target | Risk Spearman | Behavior rows differing | Mean shared evidence IDs | Exact five-hand sets |
-| --- | ---: | ---: | ---: | ---: |
-| r10 | 0.969198 | 3 / 112,540 | 3.4380 / 5 | 17.0197% |
-| r32 | 0.966357 | 87 / 112,540 | 3.4342 / 5 | 16.8687% |
+The original selected files passed the competition validator and exact final-assembly audit. For the revised raw-data path, compilation, CLI checks, a 24-feature CPU TabICL fit, and a 20-hand Round11 moments pack passed. We have **not** measured fresh end-to-end output similarity or a fresh leaderboard score. Reviewers can run the documented command in a clean environment and request clarification if needed.
 
-The r10 original top-300 pair set overlaps the replay by 285 pairs. For the original 77 fourth-family pairs, mean evidence overlap is 4.805/5, with three behavior mismatches. The r32 original top-300 overlap is 216 pairs, and all 87 original residual-family behaviors still differ. Neither replay has a new competition score. Similarity figures cannot be converted into private Pair AP or Evidence MAP@5. Complete historical-method reproduction and a similar-score check remain open.
+## Secondary audit and legacy diagnostic
 
-## Evidence reviews and license
+`run_historical_assembly.py` is an optional exact final-assembly audit from four saved competition-time intermediates. On GB10 it reproduced both selected CSV hashes. This proves the last assembly steps, not upstream retraining. `run_all.py` is an earlier partial raw-data reconstruction, not the selected-submission method. See [RUNNING.md](RUNNING.md).
 
-The [five case reviews](docs/CASE_REVIEWS.md) use hand IDs actually submitted in the original r10 file. Each separates observable play from a plausible benign explanation. They are not claims about player intent, and the current partial reconstruction may select different hands.
-
-Original code in this repository is under the [MIT License](LICENSE). Competition data remain subject to Kaggle's rules and are not distributed here.
+The [historical source archive](historical/README.md), [solution writeup](WRITEUP.md), and [five evidence case reviews](docs/CASE_REVIEWS.md) are included. Original source is under the [MIT License](LICENSE); competition data remain subject to Kaggle's rules.
