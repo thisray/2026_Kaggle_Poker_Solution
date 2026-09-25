@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the complete competition solution from the eight official data files."""
+"""Run a partial reconstruction from the eight official competition data files."""
 
 from __future__ import annotations
 

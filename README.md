@@ -1,10 +1,18 @@
 # Detect Suspicious Value Transfers in Poker — Solution and Reproduction Status
 
-This repository documents our competition-time solution and provides an executable **partial reconstruction**. The current code has not been verified as a complete reproduction of either final-evaluated submission. Please read the distinction below before attributing the historical leaderboard scores to this code.
+This repository documents our competition-time solution and has **two distinct executable paths**. `run_historical_assembly.py` reconstructs both selected submission CSVs from four saved competition-time intermediate files; we reran it on GB10 and obtained the exact original SHA-256 hashes. `run_all.py` starts from the eight official data files but is a **partial reconstruction**, not the full leaderboard-producing pipeline. The historical training and inference source is archived for review, but there is no single raw-data-to-selected-submission command. See [Running the code](RUNNING.md) for commands and input boundaries.
 
 For review, read the [draft Solution Writeup](WRITEUP.md) and the [five submitted-evidence case reviews](docs/CASE_REVIEWS.md) alongside this README. The Kaggle writeup remains an unpublished draft.
 
-The [historical source archive](historical/README.md) now includes the original competition scripts and supporting code for both selected submissions. It is provided for code review; the portable `run_all.py` path and its limits are described separately below.
+The [historical source archive](historical/README.md) includes the original competition scripts and supporting code for both selected submissions. Its scripts are a method record, while [RUNNING.md](RUNNING.md) identifies the maintained entry points.
+
+To assemble the two selected CSVs when the saved competition intermediates are available, run:
+
+```bash
+python run_historical_assembly.py --artifact-root /path/to/saved-competition-intermediates --output-dir /path/to/separate-output-directory
+```
+
+If you only have the eight official raw files, use `run_all.py` as documented in [RUNNING.md](RUNNING.md); that path is partial and must not be described as the original leaderboard-producing run.
 
 ## Competition result
 
