@@ -111,9 +111,12 @@ def run_production_spine(
     selected: bool = False,
     threads: int | None = None,
     build_r15_cache: bool = False,
+    build_r5_models: bool = False,
     resume_after_policy: bool = False,
     resume_after_evidence: bool = False,
 ) -> Path:
+    if build_r5_models and not build_r15_cache:
+        raise ValueError("--build-r5-models requires --build-r15-cache")
     data_dir = data_dir.resolve()
     output_dir = output_dir.resolve()
     worker_threads = str(min(16, threads or (os.cpu_count() or 4)))
@@ -163,6 +166,8 @@ def run_production_spine(
             "--out", str(r15_cache_path),
             extra_env={"NUMBA_NUM_THREADS": worker_threads},
         )
+    if build_r5_models:
+        _run("r5_train.py", work_dir, data_dir, extra_env={"R5_TEMPLATE": "m25_handfeat2_m19w10_oof.parquet", "NUMBA_NUM_THREADS": worker_threads})
     ci_patch_path = work_dir / "r18_ci_patch.csv"
     if selected:
         os.environ["POKER_WORK_DIR"] = str(work_dir)
@@ -257,6 +262,8 @@ def run_production_spine(
         }
         if build_r15_cache:
             receipt["r15_within_cache"] = str(r15_cache_path)
+        if build_r5_models:
+            receipt["r5_models_dir"] = str(work_dir)
         (output_dir / "selected_assembly_receipt.json").write_text(
             json.dumps(receipt, indent=2) + "\n"
         )

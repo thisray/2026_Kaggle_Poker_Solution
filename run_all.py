@@ -29,6 +29,11 @@ def main() -> None:
         help="Also train the historical within-pair model and write the R15 s2 hand cache.",
     )
     parser.add_argument(
+        "--build-r5-models",
+        action="store_true",
+        help="Train the R5 family models, template statistics, and rerank weights; requires --build-r15-cache.",
+    )
+    parser.add_argument(
         "--resume-after-policy",
         action="store_true",
         help="Reuse complete policy intermediates after an interrupted local run.",
@@ -48,6 +53,7 @@ def main() -> None:
         selected=True,
         threads=args.threads,
         build_r15_cache=args.build_r15_cache,
+        build_r5_models=args.build_r5_models,
         resume_after_policy=args.resume_after_policy,
         resume_after_evidence=args.resume_after_evidence,
     )
